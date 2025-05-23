@@ -93,9 +93,8 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
         title: "User story added successfully!",
         description: "New user story has been generated and added to the epic",
       });
-      // Invalidate and refetch the epics query to force refresh
-      queryClient.invalidateQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
-      queryClient.refetchQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
+      // Reset cache and force immediate refetch
+      queryClient.resetQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
       setIsAddStoryDialogOpen(false);
       setStoryPrompt("");
       setSelectedEpicId("");
