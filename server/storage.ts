@@ -1,4 +1,4 @@
-import { Prd, InsertPrd, User, InsertUser } from "@shared/schema";
+import { InsertPrd, InsertUser, Prd, PrdContent, User } from "@shared/schema";
 
 // Temporary Epic types for memory storage
 interface EpicRecord {
@@ -21,19 +21,22 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // PRD operations
   getPrd(id: number): Promise<Prd | undefined>;
   getAllPrds(): Promise<Prd[]>;
   createPrd(prd: InsertPrd): Promise<Prd>;
   updatePrd(id: number, updates: Partial<InsertPrd>): Promise<Prd | undefined>;
   deletePrd(id: number): Promise<boolean>;
-  
+
   // Epic operations
   getEpic(id: number): Promise<EpicRecord | undefined>;
   getEpicsByPrdId(prdId: number): Promise<EpicRecord[]>;
   createEpic(epic: InsertEpic): Promise<EpicRecord>;
-  updateEpic(id: number, updates: Partial<InsertEpic>): Promise<EpicRecord | undefined>;
+  updateEpic(
+    id: number,
+    updates: Partial<InsertEpic>
+  ): Promise<EpicRecord | undefined>;
   deleteEpic(id: number): Promise<boolean>;
 }
 
@@ -59,7 +62,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
+    for (const user of Array.from(this.users.values())) {
       if (user.username === username) {
         return user;
       }
@@ -90,17 +93,25 @@ export class MemStorage implements IStorage {
       status: insertPrd.status || "draft",
       processingTime: insertPrd.processingTime || null,
       originalFileName: insertPrd.originalFileName || null,
-      createdAt: new Date()
+      createdAt: new Date(),
+      content: insertPrd.content as PrdContent,
     };
     this.prds.set(id, prd);
     return prd;
   }
 
-  async updatePrd(id: number, updates: Partial<InsertPrd>): Promise<Prd | undefined> {
+  async updatePrd(
+    id: number,
+    updates: Partial<InsertPrd>
+  ): Promise<Prd | undefined> {
     const existing = this.prds.get(id);
     if (!existing) return undefined;
-    
-    const updated: Prd = { ...existing, ...updates };
+
+    const updated: Prd = {
+      ...existing,
+      ...updates,
+      content: { ...existing.content, ...updates.content } as PrdContent,
+    };
     this.prds.set(id, updated);
     return updated;
   }
@@ -114,7 +125,9 @@ export class MemStorage implements IStorage {
   }
 
   async getEpicsByPrdId(prdId: number): Promise<EpicRecord[]> {
-    return Array.from(this.epics.values()).filter(epic => epic.prdId === prdId);
+    return Array.from(this.epics.values()).filter(
+      (epic) => epic.prdId === prdId
+    );
   }
 
   async createEpic(insertEpic: InsertEpic): Promise<EpicRecord> {
@@ -123,16 +136,19 @@ export class MemStorage implements IStorage {
       ...insertEpic,
       id,
       processingTime: insertEpic.processingTime || null,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
     this.epics.set(id, epic);
     return epic;
   }
 
-  async updateEpic(id: number, updates: Partial<InsertEpic>): Promise<EpicRecord | undefined> {
+  async updateEpic(
+    id: number,
+    updates: Partial<InsertEpic>
+  ): Promise<EpicRecord | undefined> {
     const existing = this.epics.get(id);
     if (!existing) return undefined;
-    
+
     const updated: EpicRecord = { ...existing, ...updates };
     this.epics.set(id, updated);
     return updated;
