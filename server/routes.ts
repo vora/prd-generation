@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { generatePRDFromConversation } from "./lib/openai";
+import { generatePRDFromConversation, generateEpicsFromPRD } from "./lib/openai";
+import OpenAI from "openai";
 import { parseUploadedFile, validateFileType, validateFileSize } from "./lib/fileParser";
 import { insertPrdSchema, prdContentSchema } from "@shared/schema";
 import { z } from "zod";
@@ -274,6 +275,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting PRD:", error);
       res.status(500).json({ error: "Failed to delete PRD" });
+    }
+  });
+
+  // Add user story to epic
+  app.post("/api/epics/:epicId/add-story", async (req, res) => {
+    try {
+      const epicId = parseInt(req.params.epicId);
+      const { prompt } = req.body;
+
+      if (isNaN(epicId)) {
+        return res.status(400).json({ error: "Invalid epic ID" });
+      }
+
+      if (!prompt || typeof prompt !== 'string') {
+        return res.status(400).json({ error: "Prompt is required" });
+      }
+
+      // Get the existing epic
+      const epic = await storage.getEpic(epicId);
+      if (!epic) {
+        return res.status(404).json({ error: "Epic not found" });
+      }
+
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Generate a new user story using AI
+      const startTime = Date.now();
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: `You are a product management expert. Generate a single user story based on the provided prompt. The user story should fit within the existing epic context and follow best practices.
+
+Return your response as JSON with this exact structure:
+{
+  "userStory": {
+    "id": "story_${Date.now()}",
+    "title": "Story title",
+    "description": "As a [user], I want [goal] so that [benefit]",
+    "priority": "High|Medium|Low",
+    "estimatedStoryPoints": number_between_1_and_13,
+    "acceptanceCriteria": ["criteria1", "criteria2", "criteria3"]
+  }
+}
+
+Epic Context: ${epic.title}
+Epic Description: ${epic.content?.description || 'No description available'}`
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const processingTime = Date.now() - startTime;
+      const result = JSON.parse(response.choices[0].message.content || '{}');
+      
+      if (!result.userStory) {
+        throw new Error("Invalid response format from AI");
+      }
+
+      // Add the new user story to the epic's existing user stories
+      const currentContent = epic.content || { userStories: [] };
+      const updatedUserStories = [...(currentContent.userStories || []), result.userStory];
+      
+      const updatedContent = {
+        ...currentContent,
+        userStories: updatedUserStories
+      };
+
+      // Update the epic with the new user story
+      await storage.updateEpic(epicId, { 
+        content: updatedContent,
+        processingTime 
+      });
+
+      res.json({ 
+        success: true, 
+        userStory: result.userStory,
+        processingTime 
+      });
+    } catch (error) {
+      console.error("Error adding user story:", error);
+      res.status(500).json({ error: "Failed to add user story" });
     }
   });
 
