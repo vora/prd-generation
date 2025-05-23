@@ -426,14 +426,20 @@ Epic Description: ${epic.content?.description || 'No description available'}`
       console.log(`Generating complete application for PRD: ${prd.title}`);
       console.log(`Processing ${epics.length} epics with ${epics.reduce((acc: number, epic: any) => acc + (epic.userStories?.length || 0), 0)} user stories`);
 
-      const result = await generateCompleteApp(epics, prd.title);
-
-      res.json({
-        success: true,
-        prdId,
-        prdTitle: prd.title,
-        ...result
-      });
+      try {
+        const result = await generateCompleteApp(epics, prd.title);
+        console.log("Successfully generated application:", result.appName);
+        
+        res.json({
+          success: true,
+          prdId,
+          prdTitle: prd.title,
+          ...result
+        });
+      } catch (genError) {
+        console.error("Error in generateCompleteApp:", genError);
+        throw genError;
+      }
 
     } catch (error: any) {
       console.error("Error generating frontend code:", error);
