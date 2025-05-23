@@ -24,10 +24,13 @@ export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
 
   const deletePrdMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest(`/api/prds/${id}`, {
+      const response = await fetch(`/api/prds/${id}`, {
         method: 'DELETE',
       });
-      return response;
+      if (!response.ok) {
+        throw new Error('Failed to delete PRD');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/prds'] });
