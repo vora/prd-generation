@@ -93,8 +93,8 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
         title: "User story added successfully!",
         description: "New user story has been generated and added to the epic",
       });
-      // Force immediate refetch with new data
-      refetch();
+      // Force complete cache refresh
+      queryClient.resetQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
       setIsAddStoryDialogOpen(false);
       setStoryPrompt("");
       setSelectedEpicId("");
