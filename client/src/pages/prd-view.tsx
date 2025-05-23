@@ -103,27 +103,23 @@ export default function PRDView() {
                 
                 {true ? (
                   <button 
-                    onClick={async () => {
-                      try {
-                        const response = await fetch(`/api/prds/${prd.id}/generate-code`, {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({})
-                        });
-                        
-                        const data = await response.json();
-                        console.log('Response data:', data);
-                        console.log('Response status:', response.status);
-                        console.log('Response ok:', response.ok);
-                        
-                        if (response.ok && data.success) {
-                          alert(`🎉 SUCCESS! Generated ${data.components?.length || 0} components for your ${data.prdTitle} application!\n\nComponents created:\n${data.components?.map(c => `- ${c.filename}`).join('\n') || 'Multiple components'}`);
+                    onClick={() => {
+                      fetch(`/api/prds/${prd.id}/generate-code`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          alert(`🎉 SUCCESS! Generated ${data.components.length} components for ${data.prdTitle}!\n\nFiles created:\n- ${data.components[0].filename}\n- ${data.components[1].filename}\n\nYour React app is ready!`);
                         } else {
-                          alert(`Debug Info:\nStatus: ${response.status}\nOK: ${response.ok}\nData: ${JSON.stringify(data, null, 2)}`);
+                          alert('Unexpected response format');
                         }
-                      } catch (error) {
-                        alert('Failed to generate code. Please try again.');
-                      }
+                      })
+                      .catch(() => {
+                        alert('Network error occurred');
+                      });
                     }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
                   >
