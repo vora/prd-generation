@@ -35,6 +35,9 @@ interface EpicGeneratorProps {
 
 export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   const [deleteEpicId, setDeleteEpicId] = useState<number | null>(null);
+  const [isAddStoryDialogOpen, setIsAddStoryDialogOpen] = useState(false);
+  const [storyPrompt, setStoryPrompt] = useState("");
+  const [selectedEpicId, setSelectedEpicId] = useState<string>("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -70,6 +73,31 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
     },
   });
 
+  // Add user story mutation
+  const addStoryMutation = useMutation({
+    mutationFn: async ({ epicId, prompt }: { epicId: string; prompt: string }) => {
+      const response = await apiRequest('POST', `/api/epics/${epicId}/add-story`, { prompt });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "User story added successfully!",
+        description: "New user story has been generated and added to the epic",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
+      setIsAddStoryDialogOpen(false);
+      setStoryPrompt("");
+      setSelectedEpicId("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error adding story",
+        description: error.message || "Failed to add user story",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete epic mutation
   const deleteEpicMutation = useMutation({
     mutationFn: async (epicId: number) => {
@@ -99,6 +127,17 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   const handleDeleteEpic = () => {
     if (deleteEpicId) {
       deleteEpicMutation.mutate(deleteEpicId);
+    }
+  };
+
+  const handleAddStory = (epicId: string) => {
+    setSelectedEpicId(epicId);
+    setIsAddStoryDialogOpen(true);
+  };
+
+  const handleSubmitStory = () => {
+    if (selectedEpicId && storyPrompt.trim()) {
+      addStoryMutation.mutate({ epicId: selectedEpicId, prompt: storyPrompt.trim() });
     }
   };
 
@@ -230,7 +269,18 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
                     </div>
 
                     <div>
-                      <h4 className="font-medium mb-3">User Stories</h4>
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">User Stories</h4>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddStory(epic.id)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Story
+                        </Button>
+                      </div>
                       <div className="space-y-3">
                         {epic.userStories?.map((story: any) => (
                           <Card key={story.id} className="p-4 bg-gray-50">
@@ -265,6 +315,51 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
           })}
         </div>
       )}
+
+      {/* Add Story Dialog */}
+      <Dialog open={isAddStoryDialogOpen} onOpenChange={setIsAddStoryDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Custom User Story</DialogTitle>
+            <DialogDescription>
+              Describe what user story you'd like to add and AI will generate it with acceptance criteria and story points.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="story-prompt">Story Description</Label>
+              <Textarea
+                id="story-prompt"
+                placeholder="e.g., As a broker, I want to be able to export client data to Excel format so that I can create custom reports..."
+                value={storyPrompt}
+                onChange={(e) => setStoryPrompt(e.target.value)}
+                className="mt-2"
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddStoryDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitStory}
+                disabled={!storyPrompt.trim() || addStoryMutation.isPending}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {addStoryMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4 mr-2" />
+                )}
+                Generate Story
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteEpicId !== null} onOpenChange={() => setDeleteEpicId(null)}>
