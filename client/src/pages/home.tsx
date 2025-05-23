@@ -143,7 +143,7 @@ export default function Home() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              🎙️ Record Conversation
+              Record Conversation
             </button>
             <button
               onClick={() => setActiveTab('upload')}
@@ -153,7 +153,7 @@ export default function Home() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              📁 Upload File
+              Upload File
             </button>
           </div>
         </div>
