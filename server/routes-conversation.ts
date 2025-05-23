@@ -46,9 +46,9 @@ DESIGN & BRANDING FOCUS AREAS:
 - Mobile vs desktop experience priorities
 - User onboarding and engagement strategies
 
-Use a warm, conversational, and slightly witty tone. Ask questions that reveal the human story and emotional core of the product.
+Use a warm, conversational tone. Ask concise questions (15-25 words max) that reveal the human story and emotional core of the product.
 
-IMPORTANT: Return ONLY the question text. No emojis, no special characters, no formatting. Just a clean, professional question.`;
+IMPORTANT: Return ONLY the question text. No emojis, no special characters, no formatting. Keep it short and conversational.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user

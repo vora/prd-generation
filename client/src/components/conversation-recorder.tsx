@@ -153,8 +153,8 @@ export default function ConversationRecorder({ onConversationComplete }: Convers
 
       if (response.ok) {
         const data = await response.json();
-        // Clean any emojis from the response
-        const cleanPrompt = data.prompt.replace(/[\\u{1F600}-\\u{1F64F}]|[\u{1F300}-\\u{1F5FF}]|[\u{1F680}-\\u{1F6FF}]|[\\u{1F1E0}-\\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\\u{2700}-\\u{27BF}]/gu, '').trim();
+        // Clean any emojis and special characters from the response
+        const cleanPrompt = data.prompt.replace(/[👥🎯🔍💡⚡📊🛠️🎨💫🎭💝]/g, '').trim();
         setAiPrompt(cleanPrompt);
       } else {
         // Fallback to static prompts if API fails
