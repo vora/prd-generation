@@ -1,15 +1,32 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Loader2, Zap, ChevronDown, ChevronUp, Trash2, Users, Target, CheckSquare } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { Loader2, Sparkles, Target, Users, CheckCircle, ChevronDown, Trash2, MoreVertical, CheckSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { UserStory, EpicRecord } from "@shared/schema";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface EpicGeneratorProps {
   prdId: number;
@@ -17,39 +34,33 @@ interface EpicGeneratorProps {
 }
 
 export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
   const [deleteEpicId, setDeleteEpicId] = useState<number | null>(null);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Fetch existing epics
-  const { data: epicsData, isLoading } = useQuery({
+  // Query for existing epics
+  const { data: epicsData = [], isLoading: isLoadingEpics } = useQuery({
     queryKey: ['/api/epics', prdId],
-    queryFn: async () => {
-      const response = await fetch(`/api/prds/${prdId}/epics`);
-      if (!response.ok) throw new Error('Failed to fetch epics');
-      return response.json() as Promise<EpicRecord[]>;
-    },
+    enabled: true,
   });
 
   // Generate epics mutation
   const generateEpicsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/prds/${prdId}/epics/generate`, {});
+      const response = await apiRequest(`/api/prds/${prdId}/generate-epics`, 'POST');
       return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
+    onSuccess: (data: any) => {
       toast({
-        title: "Epics Generated Successfully",
-        description: "Your epics and user stories are ready for review.",
+        title: "Epics generated successfully!",
+        description: `Generated epics in ${data?.processingTime || 0}ms`,
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
     },
     onError: (error: any) => {
       toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate epics. Please try again.",
+        title: "Error generating epics",
+        description: error.message || "Failed to generate epics",
         variant: "destructive",
       });
     },
@@ -58,127 +69,105 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   // Delete epic mutation
   const deleteEpicMutation = useMutation({
     mutationFn: async (epicId: number) => {
-      return apiRequest("DELETE", `/api/epics/${epicId}`, undefined);
+      await apiRequest(`/api/epics/${epicId}`, 'DELETE');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
       toast({
-        title: "Epic Deleted",
-        description: "The epic and its user stories have been removed.",
+        title: "Epic deleted",
+        description: "Epic has been successfully deleted",
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
       setDeleteEpicId(null);
     },
     onError: (error: any) => {
       toast({
-        title: "Delete Failed",
-        description: error.message || "Failed to delete epic.",
+        title: "Error deleting epic",
+        description: error.message || "Failed to delete epic",
         variant: "destructive",
       });
     },
   });
 
-  const handleGenerateEpics = async () => {
-    setIsGenerating(true);
-    try {
-      await generateEpicsMutation.mutateAsync();
-    } finally {
-      setIsGenerating(false);
+  const handleGenerateEpics = () => {
+    generateEpicsMutation.mutate();
+  };
+
+  const handleDeleteEpic = () => {
+    if (deleteEpicId) {
+      deleteEpicMutation.mutate(deleteEpicId);
     }
   };
 
-  const toggleEpicExpansion = (epicId: string) => {
-    const newExpanded = new Set(expandedEpics);
-    if (newExpanded.has(epicId)) {
-      newExpanded.delete(epicId);
-    } else {
-      newExpanded.add(epicId);
-    }
-    setExpandedEpics(newExpanded);
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin mr-2" />
-            <span>Loading epics...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const hasEpics = epicsData && epicsData.length > 0;
-  
-  // Debug logging
-  console.log('Epics data:', epicsData);
+  const hasEpics = Array.isArray(epicsData) && epicsData.length > 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Epics & User Stories</h2>
-          <p className="text-muted-foreground">Generated from: {prdTitle}</p>
+          <h3 className="text-lg font-semibold text-gray-900">Epics & User Stories</h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Generate epics and user stories from your PRD using AI
+          </p>
         </div>
-        
-        {!hasEpics && (
-          <Button
-            onClick={handleGenerateEpics}
-            disabled={isGenerating}
-            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4 mr-2" />
-                Generate Epics
-              </>
-            )}
-          </Button>
-        )}
+        <Button
+          onClick={handleGenerateEpics}
+          disabled={generateEpicsMutation.isPending}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          {generateEpicsMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4 mr-2" />
+          )}
+          {generateEpicsMutation.isPending ? 'Generating...' : 'Generate Epics'}
+        </Button>
       </div>
 
-      {/* Empty State */}
-      {!hasEpics && !isGenerating && (
+      {/* Loading State */}
+      {isLoadingEpics && (
         <Card>
-          <CardContent className="p-12 text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-purple-600" />
+          <CardContent className="py-8">
+            <div className="flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              <span className="text-gray-600">Loading epics...</span>
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">No Epics Generated Yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Transform your PRD into actionable epics and user stories. Our AI will analyze your requirements 
-              and create a comprehensive backlog ready for development.
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Generation Progress */}
+      {generateEpicsMutation.isPending && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="py-6">
+            <div className="flex items-center">
+              <Loader2 className="w-5 h-5 animate-spin mr-3 text-blue-600" />
+              <div>
+                <p className="text-blue-900 font-medium">Generating epics with AI...</p>
+                <p className="text-blue-700 text-sm">This may take a few moments while we analyze your PRD</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No Epics State */}
+      {!isLoadingEpics && !hasEpics && !generateEpicsMutation.isPending && (
+        <Card className="border-dashed border-2 border-gray-300">
+          <CardContent className="py-12 text-center">
+            <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">No epics generated yet</h4>
+            <p className="text-gray-600 mb-6">
+              Generate epics and user stories from your PRD to break down the work into manageable tasks
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground max-w-2xl mx-auto">
-              <div className="flex items-center">
-                <Target className="w-4 h-4 mr-2 text-purple-600" />
-                Strategic Epics
-              </div>
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-purple-600" />
-                User Stories
-              </div>
-              <div className="flex items-center">
-                <CheckSquare className="w-4 h-4 mr-2 text-purple-600" />
-                Acceptance Criteria
-              </div>
-            </div>
+            <Button 
+              onClick={handleGenerateEpics} 
+              disabled={generateEpicsMutation.isPending}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate Epics
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -186,116 +175,21 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
       {/* Epics Display */}
       {hasEpics && (
         <div className="space-y-4">
-          {epicsData.map((epicRecord) => {
-            console.log('Epic record:', epicRecord);
-            const epics = Array.isArray(epicRecord.content) ? epicRecord.content : (epicRecord.content as any)?.epics || [];
-            console.log('Parsed epics:', epics);
-            return (
-              <div key={epicRecord.id} className="space-y-4">
-                {epics.map((epic: any) => (
-                <Card key={epic.id || epicIndex} className="border border-border">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <CardTitle className="text-xl">{epic.title}</CardTitle>
-                          <Badge className={`${getPriorityColor(epic.priority)} border`}>
-                            {epic.priority} priority
-                          </Badge>
-                        </div>
-                        <CardDescription className="text-base leading-relaxed">
-                          {epic.description}
-                        </CardDescription>
-                        
-                        {epic.goals.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-semibold text-sm text-foreground mb-2">Goals:</h4>
-                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                              {epic.goals.map((goal, index) => (
-                                <li key={index}>{goal}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteEpicId(epicRecord.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    <Collapsible>
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-between"
-                          onClick={() => toggleEpicExpansion(epic.id)}
-                        >
-                          <span>View {epic.userStories.length} User Stories</span>
-                          {expandedEpics.has(epic.id) ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
-                      
-                      <CollapsibleContent className="mt-4">
-                        <div className="space-y-4">
-                          {epic.userStories.map((story, index) => (
-                            <div key={story.id}>
-                              {index > 0 && <Separator className="my-4" />}
-                              <div className="space-y-3">
-                                <div className="flex items-start justify-between">
-                                  <h4 className="font-semibold text-foreground">{story.title}</h4>
-                                  <div className="flex items-center gap-2 ml-4">
-                                    <Badge className={`${getPriorityColor(story.priority)} border text-xs`}>
-                                      {story.priority}
-                                    </Badge>
-                                    {story.storyPoints && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {story.storyPoints} pts
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                <p className="text-muted-foreground leading-relaxed">
-                                  {story.description}
-                                </p>
-                                
-                                <div>
-                                  <h5 className="font-medium text-sm text-foreground mb-2">Acceptance Criteria:</h5>
-                                  <ul className="space-y-1">
-                                    {story.acceptanceCriteria.map((criteria, criteriaIndex) => (
-                                      <li key={criteriaIndex} className="flex items-start text-sm text-muted-foreground">
-                                        <CheckSquare className="w-4 h-4 mr-2 mt-0.5 text-green-600 flex-shrink-0" />
-                                        {criteria}
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </CardContent>
-                </Card>
-                ))}
-              </div>
-            );
-          })}
+          {epicsData.map((epicRecord: any) => (
+            <Card key={epicRecord.id} className="border border-border">
+              <CardHeader>
+                <CardTitle>Generated Epics for {prdTitle}</CardTitle>
+                <CardDescription>
+                  Processing time: {epicRecord?.processingTime || 0}ms
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded">
+                  {JSON.stringify(epicRecord.content, null, 2)}
+                </pre>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
@@ -311,10 +205,16 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteEpicId && deleteEpicMutation.mutate(deleteEpicId)}
+              onClick={handleDeleteEpic}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleteEpicMutation.isPending}
             >
-              Delete Epic
+              {deleteEpicMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

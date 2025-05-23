@@ -152,6 +152,85 @@ Respond with JSON in this exact format:
   }
 }
 
+export async function generateEpicsFromPRD(
+  prdContent: PrdContent,
+  prdTitle: string
+): Promise<{ title: string; content: any; processingTime: number }> {
+  const startTime = Date.now();
+  
+  const prompt = `As a product manager, analyze this PRD and generate comprehensive epics and user stories.
+
+PRD Title: ${prdTitle}
+
+PRD Content: ${JSON.stringify(prdContent, null, 2)}
+
+Generate 3-5 epics that break down the work into manageable chunks. For each epic, include:
+1. Title and description
+2. Priority (high/medium/low)
+3. Estimated effort (1-2 weeks, 2-4 weeks, etc.)
+4. 3-5 user stories with:
+   - Title and description
+   - Priority (high/medium/low)
+   - Status (todo/in-progress/done)
+   - Acceptance criteria (3-5 items)
+   - Estimated story points (1-13)
+
+Return JSON in this exact format:
+{
+  "epics": [
+    {
+      "id": "epic-1",
+      "title": "Epic Title",
+      "description": "Epic description",
+      "priority": "high",
+      "estimatedEffort": "2-4 weeks",
+      "goals": ["Goal 1", "Goal 2"],
+      "userStories": [
+        {
+          "id": "story-1",
+          "title": "User Story Title",
+          "description": "As a [user], I want [goal] so that [benefit]",
+          "priority": "high",
+          "status": "todo",
+          "acceptanceCriteria": ["Criteria 1", "Criteria 2"],
+          "estimatedStoryPoints": 5
+        }
+      ]
+    }
+  ]
+}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert product manager who creates detailed epics and user stories. Always respond with valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+    });
+
+    const content = JSON.parse(response.choices[0].message.content || "{}");
+    const processingTime = Date.now() - startTime;
+
+    return {
+      title: `Epics for ${prdTitle}`,
+      content,
+      processingTime
+    };
+  } catch (error) {
+    console.error("Error generating epics:", error);
+    throw new Error("Failed to generate epics from PRD");
+  }
+}
+
 export async function enhancePRDSection(
   sectionContent: string,
   sectionType: string,
