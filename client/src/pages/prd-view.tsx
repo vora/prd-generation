@@ -101,7 +101,7 @@ export default function PRDView() {
                   Generate a complete React TypeScript application from your epics and user stories
                 </p>
                 
-                {prd.content && (prd.content as any).epics && (prd.content as any).epics.length > 0 ? (
+                {true ? (
                   <button 
                     onClick={async () => {
                       try {
