@@ -15,29 +15,20 @@ export async function parseUploadedFile(
     const buffer = readFileSync(filepath);
     const fileType = await fileTypeFromBuffer(buffer);
     
-    console.log(`📁 Processing file: ${originalname}, detected type: ${fileType?.mime || 'none'}`);
-    
     let content: string;
     
-    // Handle different file types - prioritize filename extension
-    const fileName = originalname.toLowerCase();
-    
-    if (fileName.endsWith('.txt')) {
+    // Handle different file types
+    if (originalname.toLowerCase().endsWith('.txt') || fileType?.mime === 'text/plain') {
       content = buffer.toString('utf-8');
-      console.log(`✅ Processed as text file`);
-    } else if (fileName.endsWith('.pdf')) {
+    } else if (originalname.toLowerCase().endsWith('.pdf') || fileType?.mime === 'application/pdf') {
+      // For PDF parsing, we'll use a simple text extraction
+      // In a real implementation, you'd use a library like pdf-parse
       content = await parsePDF(buffer);
-      console.log(`✅ Processed as PDF`);
-    } else if (fileName.endsWith('.docx')) {
+    } else if (originalname.toLowerCase().endsWith('.docx') || fileType?.mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      // For DOCX parsing, you'd use a library like mammoth
       content = await parseDOCX(buffer);
-      console.log(`✅ Processed as DOCX`);
-    } else if (fileName.endsWith('.doc')) {
-      content = buffer.toString('utf-8');
-      console.log(`✅ Processed as DOC (text fallback)`);
     } else {
-      // Default to text for any unrecognized file
-      content = buffer.toString('utf-8');
-      console.log(`✅ Processed as default text`);
+      throw new Error(`Unsupported file type: ${fileType?.mime || 'unknown'}`);
     }
 
     if (!content.trim()) {

@@ -3,14 +3,12 @@ import { Brain, Rocket, Settings, FileText, Users, Code, Figma, Zap, ArrowRight 
 import FileUpload from "@/components/file-upload";
 import PRDPreview from "@/components/prd-preview-new";
 import RecentPRDs from "@/components/recent-prds";
-import ConversationRecorder from "@/components/conversation-recorder";
 import { Card, CardContent } from "@/components/ui/card";
 import { queryClient } from "@/lib/queryClient";
 import type { Prd } from "@shared/schema";
 
 export default function Home() {
   const [selectedPRD, setSelectedPRD] = useState<Prd | null>(null);
-  const [activeTab, setActiveTab] = useState<'upload' | 'record'>('record');
 
   const handlePRDGenerated = (prd: Prd) => {
     setSelectedPRD(prd);
@@ -20,26 +18,6 @@ export default function Home() {
 
   const handlePRDSelect = (prd: Prd) => {
     setSelectedPRD(prd);
-  };
-
-  const handleConversationComplete = (transcript: string) => {
-    // Use the dedicated conversation-to-PRD endpoint
-    fetch('/api/prds/generate-from-conversation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcript })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        handlePRDGenerated(data.prd);
-      } else {
-        console.error('Failed to generate PRD:', data.error);
-      }
-    })
-    .catch(error => {
-      console.error('Error generating PRD from conversation:', error);
-    });
   };
 
   return (
@@ -128,42 +106,10 @@ export default function Home() {
           </Card>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-gray-100 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveTab('record')}
-              className={`px-6 py-2 rounded-md font-medium transition-colors ${
-                activeTab === 'record'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Record Conversation
-            </button>
-            <button
-              onClick={() => setActiveTab('upload')}
-              className={`px-6 py-2 rounded-md font-medium transition-colors ${
-                activeTab === 'upload'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Upload File
-            </button>
-          </div>
-        </div>
-
         {/* Main Grid */}
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Dynamic Content Section */}
-          <div>
-            {activeTab === 'record' ? (
-              <ConversationRecorder onConversationComplete={handleConversationComplete} />
-            ) : (
-              <FileUpload onPRDGenerated={handlePRDGenerated} />
-            )}
-          </div>
+          {/* Upload Section */}
+          <FileUpload onPRDGenerated={handlePRDGenerated} />
 
           {/* Preview Section */}
           <PRDPreview prd={selectedPRD} />

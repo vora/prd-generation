@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePRDFromConversation, generateEpicsFromPRD } from "./lib/openai";
-import { registerConversationRoutes } from "./routes-conversation";
 import OpenAI from "openai";
 import { parseUploadedFile, validateFileType, validateFileSize } from "./lib/fileParser";
 import { insertPrdSchema, prdContentSchema } from "@shared/schema";
@@ -20,47 +19,6 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Register conversation analysis routes
-  registerConversationRoutes(app);
-
-  // Generate PRD directly from conversation transcript
-  app.post("/api/prds/generate-from-conversation", async (req: Request, res: Response) => {
-    try {
-      const { transcript } = req.body;
-
-      if (!transcript || transcript.trim().length < 50) {
-        return res.status(400).json({ error: "Transcript too short to generate PRD" });
-      }
-
-      console.log("🎙️ Generating PRD from conversation transcript...");
-
-      const result = await generatePRDFromConversation(transcript);
-      
-      const prd = await storage.createPrd({
-        title: result.title,
-        content: result.content,
-        status: 'draft',
-        originalFileName: `conversation-${Date.now()}.txt`,
-        processingTime: result.processingTime
-      });
-
-      console.log(`✅ PRD generated successfully: ${prd.title}`);
-
-      res.json({ 
-        success: true, 
-        prd,
-        processingTime: result.processingTime
-      });
-
-    } catch (error: any) {
-      console.error("❌ Error generating PRD from conversation:", error);
-      res.status(500).json({ 
-        error: "Failed to generate PRD from conversation",
-        details: error.message 
-      });
-    }
-  });
-  
   // Get all PRDs
   app.get("/api/prds", async (_req: Request, res: Response) => {
     try {
