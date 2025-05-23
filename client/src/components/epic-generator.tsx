@@ -41,6 +41,10 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   // Query for existing epics
   const { data: epicsData = [], isLoading: isLoadingEpics } = useQuery({
     queryKey: ['/api/epics', prdId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/prds/${prdId}/epics`, undefined);
+      return response.json();
+    },
     enabled: true,
   });
 
