@@ -97,10 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Generate PRD using OpenAI
         console.log(`Generating PRD from file: ${parsedFile.filename}`);
-        const result = await generatePRDFromConversation(
-          parsedFile.content,
-          parsedFile.filename
-        );
+        const result = await generatePRDFromConversation(parsedFile.content);
 
         // Validate PRD content
         const validatedContent = prdContentSchema.parse(result.content);
