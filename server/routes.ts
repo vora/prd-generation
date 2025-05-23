@@ -288,21 +288,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
-      // Find epic by ID from all epics (we need to get all epics first)
-      // Get PRD ID from the epic's prdId when we find it
+      // Find the epic in the PRD structure since epics are stored there
+      const prds = await storage.getAllPrds();
       let epic = null;
+      let prdId = null;
       
-      // Try to find epic by numeric ID first
-      const numericId = parseInt(epicIdParam);
-      if (!isNaN(numericId)) {
-        epic = await storage.getEpic(numericId);
-      }
-      
-      // If not found and it's a string ID, search through all PRDs
-      if (!epic) {
-        // For now, assume PRD ID 1 since that's what we have in memory storage
-        const allEpics = await storage.getEpicsByPrdId(1);
-        epic = allEpics.find(e => e.id.toString() === epicIdParam);
+      // Search through all PRDs to find the epic
+      for (const prd of prds) {
+        if (prd.content && (prd.content as any).epics) {
+          const content = prd.content as any;
+          const foundEpic = content.epics.find((e: any) => e.id === epicIdParam);
+          if (foundEpic) {
+            epic = { ...foundEpic, prdId: prd.id };
+            prdId = prd.id;
+            break;
+          }
+        }
       }
       if (!epic) {
         return res.status(404).json({ error: "Epic not found" });
@@ -364,15 +365,11 @@ Epic Description: ${epic.content?.description || 'No description available'}`
         processingTime 
       });
 
-      // Also update the main PRD epic list to reflect changes
-      const prds = await storage.getAllPrds();
-      const prd = prds.find(p => p.id === epic.prdId);
-      console.log(`Found PRD ${prd?.id} for epic ${epicIdParam}`);
-      
+      // Update the PRD epic list to add the new user story
+      const prd = await storage.getPrd(prdId);
       if (prd && prd.content && (prd.content as any).epics) {
         const content = prd.content as any;
         const epicIndex = content.epics.findIndex((e: any) => e.id === epicIdParam);
-        console.log(`Epic index: ${epicIndex}, Total epics: ${content.epics.length}`);
         
         if (epicIndex !== -1) {
           if (!content.epics[epicIndex].userStories) {
@@ -380,12 +377,8 @@ Epic Description: ${epic.content?.description || 'No description available'}`
           }
           content.epics[epicIndex].userStories.push(result.userStory);
           await storage.updatePrd(prd.id, { content });
-          console.log(`Successfully updated PRD ${prd.id} - Epic ${epicIdParam} now has ${content.epics[epicIndex].userStories.length} user stories`);
-        } else {
-          console.log(`Epic ${epicIdParam} not found in PRD content`);
+          console.log(`Added user story to epic ${epicIdParam} in PRD ${prd.id}`);
         }
-      } else {
-        console.log(`PRD content structure issue - PRD: ${!!prd}, Content: ${!!prd?.content}, Epics: ${!!(prd?.content as any)?.epics}`);
       }
 
       res.json({ 
