@@ -36,13 +36,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`Found PRD: ${prd.title}`);
 
-      // Check if epics already exist for this PRD - delete them first
+      // Always clear existing epics before generating new ones
       const existingEpics = await storage.getEpicsByPrdId(prdId);
-      console.log(`Existing epics for PRD ${prdId}:`, existingEpics.length);
+      console.log(`Clearing ${existingEpics.length} existing epics for PRD ${prdId}`);
       
-      // Delete existing epics to allow regeneration
       for (const epic of existingEpics) {
         await storage.deleteEpic(epic.id);
+        console.log(`Deleted epic ${epic.id}`);
       }
 
       const { generateEpicsFromPRD } = await import("./lib/openai");
