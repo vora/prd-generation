@@ -36,13 +36,11 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   // Generate epics mutation
   const generateEpicsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/prds/${prdId}/generate-epics`, {
-        method: 'POST',
-      });
+      const response = await apiRequest(`/api/prds/${prdId}/epics/generate`, "POST", {});
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/prds', prdId, 'epics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
       toast({
         title: "Epics Generated Successfully",
         description: "Your epics and user stories are ready for review.",
@@ -60,12 +58,10 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   // Delete epic mutation
   const deleteEpicMutation = useMutation({
     mutationFn: async (epicId: number) => {
-      await apiRequest(`/api/epics/${epicId}`, {
-        method: 'DELETE',
-      });
+      return apiRequest(`/api/epics/${epicId}`, "DELETE", undefined);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/prds', prdId, 'epics'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
       toast({
         title: "Epic Deleted",
         description: "The epic and its user stories have been removed.",
