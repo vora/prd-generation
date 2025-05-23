@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Brain, Rocket, Settings } from "lucide-react";
 import FileUpload from "@/components/file-upload";
-import PRDPreview from "@/components/prd-preview";
+import PRDPreview from "@/components/prd-preview-new";
 import RecentPRDs from "@/components/recent-prds";
 import { queryClient } from "@/lib/queryClient";
 import type { Prd } from "@shared/schema";
