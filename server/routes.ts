@@ -289,12 +289,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Find the epic in the PRD structure since epics are stored there
-      const prds = await storage.getAllPrds();
+      const allPrds = await storage.getAllPrds();
       let epic = null;
       let prdId = null;
       
       // Search through all PRDs to find the epic
-      for (const prd of prds) {
+      for (const prd of allPrds) {
         if (prd.content && (prd.content as any).epics) {
           const content = prd.content as any;
           const foundEpic = content.epics.find((e: any) => e.id === epicIdParam);
@@ -366,8 +366,9 @@ Epic Description: ${epic.content?.description || 'No description available'}`
       });
 
       // Update the PRD epic list to add the new user story
-      const prd = await storage.getPrd(prdId);
-      if (prd && prd.content && (prd.content as any).epics) {
+      if (prdId) {
+        const prd = await storage.getPrd(prdId);
+        if (prd && prd.content && (prd.content as any).epics) {
         const content = prd.content as any;
         const epicIndex = content.epics.findIndex((e: any) => e.id === epicIdParam);
         
@@ -378,6 +379,7 @@ Epic Description: ${epic.content?.description || 'No description available'}`
           content.epics[epicIndex].userStories.push(result.userStory);
           await storage.updatePrd(prd.id, { content });
           console.log(`Added user story to epic ${epicIdParam} in PRD ${prd.id}`);
+        }
         }
       }
 
