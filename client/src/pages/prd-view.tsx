@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatTime, downloadBlob, generatePDF } from "@/lib/utils";
 import PRDPreview from "@/components/prd-preview-new";
 import EpicGenerator from "@/components/epic-generator";
+import CodeGenerator from "@/components/code-generator";
 import type { Prd } from "@shared/schema";
 
 export default function PRDView() {
