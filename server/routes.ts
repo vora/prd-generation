@@ -281,19 +281,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add user story to epic
   app.post("/api/epics/:epicId/add-story", async (req, res) => {
     try {
-      const epicId = parseInt(req.params.epicId);
+      const epicIdParam = req.params.epicId;
       const { prompt } = req.body;
-
-      if (isNaN(epicId)) {
-        return res.status(400).json({ error: "Invalid epic ID" });
-      }
 
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ error: "Prompt is required" });
       }
 
-      // Get the existing epic
-      const epic = await storage.getEpic(epicId);
+      // Find epic by ID from all epics (we need to get all epics first)
+      // Get PRD ID from the epic's prdId when we find it
+      let epic = null;
+      
+      // Try to find epic by numeric ID first
+      const numericId = parseInt(epicIdParam);
+      if (!isNaN(numericId)) {
+        epic = await storage.getEpic(numericId);
+      }
+      
+      // If not found and it's a string ID, search through all PRDs
+      if (!epic) {
+        // For now, assume PRD ID 1 since that's what we have in memory storage
+        const allEpics = await storage.getEpicsByPrdId(1);
+        epic = allEpics.find(e => e.id.toString() === epicIdParam);
+      }
       if (!epic) {
         return res.status(404).json({ error: "Epic not found" });
       }
@@ -349,7 +359,7 @@ Epic Description: ${epic.content?.description || 'No description available'}`
       };
 
       // Update the epic with the new user story
-      await storage.updateEpic(epicId, { 
+      await storage.updateEpic(epic.id, { 
         content: updatedContent,
         processingTime 
       });

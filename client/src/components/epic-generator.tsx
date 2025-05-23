@@ -86,7 +86,7 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   const addStoryMutation = useMutation({
     mutationFn: async ({ epicId, prompt }: { epicId: string; prompt: string }) => {
       const response = await apiRequest('POST', `/api/epics/${epicId}/add-story`, { prompt });
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       toast({
