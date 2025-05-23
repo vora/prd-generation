@@ -91,11 +91,61 @@ export default function PRDView() {
             <EpicGenerator prdId={prd.id} prdTitle={prd.title} />
           )}
           {activeTab === "code" && (
-            <SimpleCodeGenerator 
-              prdId={prd.id} 
-              prdTitle={prd.title}
-              hasEpics={prd.content && (prd.content as any).epics && (prd.content as any).epics.length > 0}
-            />
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-5 w-5 bg-blue-500 rounded"></div>
+                  <h3 className="text-lg font-semibold">Frontend Code Generator</h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Generate a complete React TypeScript application from your epics and user stories
+                </p>
+                
+                {prd.content && (prd.content as any).epics && (prd.content as any).epics.length > 0 ? (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/prds/${prd.id}/generate-code`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({})
+                        });
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          alert(`Success! Generated ${data.components?.length || 0} components for your ${prd.title} application!`);
+                        } else {
+                          const error = await response.json();
+                          alert(`Error: ${error.error}`);
+                        }
+                      } catch (error) {
+                        alert('Failed to generate code. Please try again.');
+                      }
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                  >
+                    🚀 Generate Frontend Code
+                  </button>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="mb-2">Please generate epics first</p>
+                    <p className="text-sm">Epics provide the structure needed to create meaningful components</p>
+                  </div>
+                )}
+                
+                <div className="mt-6 text-sm text-gray-600 dark:text-gray-400">
+                  <h4 className="font-medium mb-2">What you'll get:</h4>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Complete React TypeScript components</li>
+                    <li>Pages with proper routing</li>
+                    <li>Real functionality based on your user stories</li>
+                    <li>Tailwind CSS styling</li>
+                    <li>Package.json with all dependencies</li>
+                    <li>README with setup instructions</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
