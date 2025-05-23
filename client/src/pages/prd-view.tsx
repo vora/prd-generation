@@ -13,6 +13,8 @@ export default function PRDView() {
   const [, params] = useRoute("/prd/:id");
   const [activeTab, setActiveTab] = useState("prd");
   const [, setLocation] = useLocation();
+  const [generatedApp, setGeneratedApp] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
   
   const { data: prds, isLoading } = useQuery<Prd[]>({
     queryKey: ['/api/prds'],
