@@ -111,12 +111,11 @@ export default function PRDView() {
                           body: JSON.stringify({})
                         });
                         
-                        if (response.ok) {
-                          const data = await response.json();
-                          alert(`Success! Generated ${data.components?.length || 0} components for your ${prd.title} application!`);
+                        const data = await response.json();
+                        if (response.ok && data.success) {
+                          alert(`🎉 Success! Generated ${data.components?.length || 0} components for your ${data.prdTitle} application!\n\nComponents created:\n${data.components?.map(c => `- ${c.filename}`).join('\n') || 'Multiple components'}`);
                         } else {
-                          const error = await response.json();
-                          alert(`Error: ${error.error}`);
+                          alert(`Error: ${data.error || 'Unknown error occurred'}`);
                         }
                       } catch (error) {
                         alert('Failed to generate code. Please try again.');
