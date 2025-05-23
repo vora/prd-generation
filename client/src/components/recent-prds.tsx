@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ interface RecentPRDsProps {
 }
 
 export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
+  const [, setLocation] = useLocation();
   const { data: prds, isLoading, error } = useQuery<Prd[]>({
     queryKey: ['/api/prds'],
   });
@@ -101,7 +103,11 @@ export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {recentPRDs.map((prd) => (
-          <Card key={prd.id} className="hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer bg-card/50 backdrop-blur-sm border-border hover:bg-card/80">
+          <Card 
+            key={prd.id} 
+            className="hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer bg-card/50 backdrop-blur-sm border-border hover:bg-card/80"
+            onClick={() => setLocation(`/prd/${prd.id}`)}
+          >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -143,7 +149,10 @@ export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
                   size="sm" 
                   variant="link" 
                   className="text-primary hover:text-primary/80 font-semibold p-0"
-                  onClick={() => onPRDSelect(prd)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setLocation(`/prd/${prd.id}`);
+                  }}
                 >
                   Open PRD
                 </Button>

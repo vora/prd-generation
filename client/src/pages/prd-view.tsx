@@ -1,0 +1,66 @@
+import { useLocation, useRoute } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import PRDPreview from "@/components/prd-preview-new";
+import type { Prd } from "@shared/schema";
+
+export default function PRDView() {
+  const [, params] = useRoute("/prd/:id");
+  const [, setLocation] = useLocation();
+  
+  const { data: prds, isLoading } = useQuery<Prd[]>({
+    queryKey: ['/api/prds'],
+  });
+  
+  const prd = prds?.find(p => p.id.toString() === params?.id);
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading PRD...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!prd) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-4">PRD Not Found</h1>
+          <p className="text-muted-foreground mb-6">The requested PRD could not be found.</p>
+          <Button onClick={() => setLocation("/")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header with back button */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto px-4 py-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setLocation("/")}
+            className="mb-0"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
+      </div>
+      
+      {/* PRD Content */}
+      <div className="container mx-auto px-4 py-6">
+        <PRDPreview prd={prd} />
+      </div>
+    </div>
+  );
+}
