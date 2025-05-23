@@ -106,17 +106,15 @@ export default function PRDView() {
                     onClick={() => {
                       alert('🚀 Building your Broker Mobile App...');
                       
-                      // Show immediate preview without API call
-                      const previewData = {
-                        appName: "Broker Mobile App for HealthSecure Insurance",
-                        epics: (prd.content as any)?.epics || []
-                      };
-                      
-                      setActiveTab("preview");
-                      localStorage.setItem('appPreview', JSON.stringify(previewData));
+                      // Show preview directly on this tab
+                      const previewElement = document.getElementById('app-preview-container');
+                      if (previewElement) {
+                        previewElement.style.display = 'block';
+                        previewElement.scrollIntoView({ behavior: 'smooth' });
+                      }
                       
                       setTimeout(() => {
-                        alert('✅ App built successfully! Preview is now showing below.');
+                        alert('✅ App built successfully! Preview is showing below.');
                       }, 500);
                     }}
                     className="bg-green-600 hover:bg-green-700 mr-4"
