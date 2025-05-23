@@ -15,7 +15,7 @@ export function registerConversationRoutes(app: Express) {
 
       console.log(`🧠 Analyzing conversation (${phase} phase) for contextual prompts...`);
 
-      const prompt = `You are an expert product manager conducting a discovery session to generate comprehensive PRDs. 
+      const prompt = `You are a warm, deep, and witty product person conducting a discovery session to generate comprehensive PRDs. Your style is conversational, insightful, and brings out the human story behind products.
 
 CURRENT CONVERSATION TRANSCRIPT:
 "${transcript}"
@@ -24,28 +24,38 @@ CURRENT PHASE: ${phase}
 CONTEXT: ${context}
 
 Based on the conversation so far, generate ONE intelligent follow-up question that will:
-1. Dig deeper into what's been discussed
+1. Dig deeper into what's been discussed with warmth and curiosity
 2. Uncover missing critical information for a comprehensive PRD
-3. Help identify specific user needs, pain points, or technical requirements
+3. Help identify user personas, brand personality, and emotional design needs
 4. Move the conversation toward actionable product specifications
 
-ANALYSIS GUIDELINES:
-- If they mentioned a problem, ask about impact and frequency
-- If they described users, ask about specific workflows and frustrations  
-- If they talked about features, ask about success metrics and edge cases
-- If they discussed technical aspects, ask about integrations and constraints
-- Look for gaps in: user personas, success criteria, technical requirements, business goals
+COMPREHENSIVE ANALYSIS GUIDELINES:
+- PROBLEMS: Ask about impact, frequency, and emotional toll on users
+- USERS: Dive into personas, demographics, behaviors, and emotional journeys
+- FEATURES: Explore success metrics, edge cases, and user delight moments
+- TECHNICAL: Understand integrations, constraints, and scalability needs
+- DESIGN & BRAND: Explore visual identity, tone, personality, and user experience philosophy
+- BUSINESS: Understand goals, metrics, competitive landscape, and market positioning
 
-Respond with a single, specific, actionable question that builds on what they've already shared. Make it conversational and natural.
+DESIGN & BRANDING FOCUS AREAS:
+- User experience philosophy and design principles
+- Brand personality (playful, professional, minimal, bold, etc.)
+- Visual design direction and aesthetic preferences  
+- Tone of voice and communication style
+- Accessibility and inclusive design considerations
+- Mobile vs desktop experience priorities
+- User onboarding and engagement strategies
 
-Format: Just return the question with an appropriate emoji prefix (🎯, 🔍, 💡, ⚡, 📊, 🛠️, 👥, etc.)`;
+Use a warm, conversational, and slightly witty tone. Ask questions that reveal the human story and emotional core of the product.
+
+Format: Just return the question with an appropriate emoji prefix (🎨, 👥, 💫, 🎯, 🔍, 💡, ⚡, 📊, 🛠️, 🎭, 💝, etc.)`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
             role: "system",
-            content: "You are an expert product discovery facilitator. Generate intelligent, contextual questions that drive comprehensive PRD development."
+            content: "You are a warm, deep, and witty product person who excels at discovery conversations. You ask questions that uncover not just what to build, but why it matters and how it should feel. Your style is conversational, insightful, and focuses on the human story behind products."
           },
           {
             role: "user", 
@@ -93,7 +103,7 @@ Format: Just return the question with an appropriate emoji prefix (🎯, 🔍, �
 
       console.log(`🔍 Analyzing conversation for insights and themes...`);
 
-      const prompt = `Analyze this product discovery conversation and extract key insights:
+      const prompt = `Analyze this product discovery conversation and extract comprehensive insights for PRD development:
 
 CONVERSATION:
 "${transcript}"
@@ -101,15 +111,25 @@ CONVERSATION:
 Provide a structured analysis in JSON format:
 {
   "keyThemes": ["theme1", "theme2", "theme3"],
-  "userPersonas": [{"name": "persona", "needs": ["need1", "need2"]}],
+  "userPersonas": [{"name": "persona", "demographics": "age/role", "needs": ["need1", "need2"], "frustrations": ["frustration1"], "goals": ["goal1"]}],
   "painPoints": ["pain1", "pain2"],
   "businessGoals": ["goal1", "goal2"],
   "technicalRequirements": ["req1", "req2"],
+  "designAndBrandInsights": {
+    "brandPersonality": ["trait1", "trait2"],
+    "visualDirection": "description",
+    "toneOfVoice": "description",
+    "userExperiencePhilosophy": "description"
+  },
+  "emotionalJourney": {
+    "currentFeelings": ["frustrated", "confused"],
+    "desiredFeelings": ["confident", "delighted"]
+  },
   "missingInformation": ["missing1", "missing2"],
   "suggestedNextSteps": ["step1", "step2"]
 }
 
-Focus on actionable insights that would help create a comprehensive PRD.`;
+Focus on actionable insights including design, branding, user experience, and emotional aspects that would help create a comprehensive PRD.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
