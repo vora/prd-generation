@@ -1,10 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { FileText, MoreHorizontal, Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { Prd } from "@shared/schema";
 
 interface RecentPRDsProps {
@@ -13,9 +17,37 @@ interface RecentPRDsProps {
 
 export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const { data: prds, isLoading, error } = useQuery<Prd[]>({
     queryKey: ['/api/prds'],
   });
+
+  const deletePrdMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest(`/api/prds/${id}`, {
+        method: 'DELETE',
+      });
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/prds'] });
+      toast({
+        title: "PRD deleted",
+        description: "The PRD has been successfully deleted.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete PRD. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeletePrd = (id: number, title: string) => {
+    deletePrdMutation.mutate(id);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -122,9 +154,40 @@ export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
                   <Badge className={`${getStatusColor(prd.status)} border text-xs`}>
                     {getStatusText(prd.status)}
                   </Badge>
-                  <Button size="sm" variant="ghost" className="p-1">
-                    <MoreHorizontal className="w-4 h-4 text-slate-600" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="ghost" className="p-1" onClick={(e) => e.stopPropagation()}>
+                        <MoreHorizontal className="w-4 h-4 text-slate-600" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete PRD
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete PRD</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{prd.title}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeletePrd(prd.id, prd.title)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
               
