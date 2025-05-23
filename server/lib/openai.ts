@@ -1,9 +1,13 @@
-import OpenAI from "openai";
 import { PrdContent } from "@shared/schema";
+import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
+
+const openai = new OpenAI({
+  apiKey:
+    process.env.OPENAI_API_KEY ||
+    process.env.OPENAI_API_KEY_ENV_VAR ||
+    "default_key",
 });
 
 export async function generatePRDFromConversation(
@@ -157,7 +161,7 @@ export async function generateEpicsFromPRD(
   prdTitle: string
 ): Promise<{ title: string; content: any; processingTime: number }> {
   const startTime = Date.now();
-  
+
   const prompt = `As a product manager, analyze this PRD and generate comprehensive epics and user stories.
 
 PRD Title: ${prdTitle}
@@ -206,12 +210,13 @@ Return JSON in this exact format:
       messages: [
         {
           role: "system",
-          content: "You are an expert product manager who creates detailed epics and user stories. Always respond with valid JSON."
+          content:
+            "You are an expert product manager who creates detailed epics and user stories. Always respond with valid JSON.",
         },
         {
           role: "user",
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       response_format: { type: "json_object" },
       temperature: 0.7,
@@ -223,7 +228,7 @@ Return JSON in this exact format:
     return {
       title: `Epics for ${prdTitle}`,
       content,
-      processingTime
+      processingTime,
     };
   } catch (error) {
     console.error("Error generating epics:", error);
