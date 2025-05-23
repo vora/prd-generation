@@ -1,0 +1,61 @@
+{
+  "epics": [
+    {
+      "id": "epic-1",
+      "title": "Book of Business Management",
+      "description": "Develop a comprehensive Book of Business feature for brokers to manage client data effectively with filtering, sorting, and export capabilities.",
+      "priority": "high",
+      "estimatedEffort": "3-5 weeks",
+      "goals": [
+        "Enable brokers to efficiently manage their client information.",
+        "Provide tools for filtering, sorting, and exporting client data."
+      ],
+      "userStories": [
+        {
+          "id": "story-1",
+          "title": "View Clients",
+          "description": "As a broker, I want to view all my clients so that I can manage them efficiently.",
+          "priority": "high",
+          "status": "todo",
+          "acceptanceCriteria": [
+            "Brokers can view a list of all clients.",
+            "The client list is paginated for performance.",
+            "Client details can be accessed by clicking on a client entry."
+          ],
+          "estimatedStoryPoints": 8
+        },
+        {
+          "id": "story-2",
+          "title": "Filter Clients",
+          "description": "As a broker, I want to filter my client list by various criteria so that I can find specific clients quickly.",
+          "priority": "high",
+          "status": "todo",
+          "acceptanceCriteria": [
+            "Brokers can filter clients by name, status, and plan type.",
+            "Filters can be combined for more precise results.",
+            "The filter criteria are clearly visible and easy to reset."
+          ],
+          "estimatedStoryPoints": 5
+        },
+        {
+          "id": "story-3",
+          "title": "Export Client Data",
+          "description": "As a broker, I want to export my client data to a CSV file so that I can analyze it outside the app.",
+          "priority": "medium",
+          "status": "todo",
+          "acceptanceCriteria": [
+            "Brokers can export filtered data.",
+            "Exported data includes all relevant client details.",
+            "The export process is fast and reliable."
+          ],
+          "estimatedStoryPoints": 5
+        }
+      ]
+    },
+    {
+      "id": "epic-2",
+      "title": "Quoting and Plan Comparison",
+      "description": "Implement quoting features with plan comparison and sharing capabilities to assist brokers in client decision-making.",
+      "priority": "medium",
+      "estimatedEffort": "4-6 weeks",
+      "goals": [

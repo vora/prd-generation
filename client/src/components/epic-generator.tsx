@@ -178,22 +178,91 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
 
       {/* Epics Display */}
       {hasEpics && (
-        <div className="space-y-4">
-          {epicsData.map((epicRecord: any) => (
-            <Card key={epicRecord.id} className="border border-border">
-              <CardHeader>
-                <CardTitle>Generated Epics for {prdTitle}</CardTitle>
-                <CardDescription>
-                  Processing time: {epicRecord?.processingTime || 0}ms
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded">
-                  {JSON.stringify(epicRecord.content, null, 2)}
-                </pre>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-6">
+          {epicsData.map((epicRecord: any) => {
+            const epics = epicRecord.content?.epics || [];
+            
+            return (
+              <div key={epicRecord.id} className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-lg font-semibold">Generated Epics</h4>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      Generated in {epicRecord?.processingTime || 0}ms
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDeleteEpicId(epicRecord.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {epics.map((epic: any, epicIndex: number) => (
+                  <Card key={`${epicRecord.id}-${epicIndex}`} className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">{epic.title}</h3>
+                        <Badge variant="outline" className="mt-2">
+                          {epic.priority || 'Medium'} Priority
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4">{epic.description || 'No description available'}</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <h4 className="font-medium mb-2">Goals</h4>
+                        <ul className="text-sm text-gray-600 space-y-1">
+                          {epic.goals?.map((goal: string, index: number) => (
+                            <li key={index}>• {goal}</li>
+                          )) || <li>No goals specified</li>}
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Estimated Effort</h4>
+                        <p className="text-sm text-gray-600">{epic.estimatedEffort || 'Not specified'}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-medium mb-3">User Stories</h4>
+                      <div className="space-y-3">
+                        {epic.userStories?.map((story: any) => (
+                          <Card key={story.id} className="p-4 bg-gray-50">
+                            <div className="flex justify-between items-start mb-2">
+                              <h5 className="font-medium">{story.title}</h5>
+                              <div className="flex gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {story.priority} priority
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {story.estimatedStoryPoints} pts
+                                </Badge>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">{story.description}</p>
+                            <div>
+                              <h6 className="text-sm font-medium mb-2">Acceptance Criteria:</h6>
+                              <ul className="text-sm text-gray-600 space-y-1">
+                                {story.acceptanceCriteria?.map((criteria: string, index: number) => (
+                                  <li key={index}>✓ {criteria}</li>
+                                )) || <li>No criteria specified</li>}
+                              </ul>
+                            </div>
+                          </Card>
+                        )) || <p className="text-gray-500">No user stories available</p>}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
