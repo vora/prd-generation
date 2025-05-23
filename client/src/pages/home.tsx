@@ -26,11 +26,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/beanstalk-logo.png" 
-                alt="Beanstalk Logo" 
-                className="w-8 h-8 object-contain"
-              />
+              <div className="w-8 h-8 bg-gradient-to-br from-accent to-primary rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">B</span>
+              </div>
               <h1 className="text-xl font-bold text-foreground tracking-tight">Beanstalk</h1>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
@@ -138,11 +136,9 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-6">
-                <img 
-                  src="/beanstalk-logo.png" 
-                  alt="Beanstalk Logo" 
-                  className="w-10 h-10 object-contain"
-                />
+                <div className="w-10 h-10 bg-gradient-to-br from-accent to-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">B</span>
+                </div>
                 <h4 className="text-2xl font-bold text-foreground">Beanstalk</h4>
               </div>
               <p className="text-muted-foreground mb-6 leading-relaxed max-w-md">
