@@ -284,6 +284,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const epicIdParam = req.params.epicId;
       const { prompt } = req.body;
 
+      console.log(`=== ADD STORY REQUEST ===`);
+      console.log(`Epic ID: ${epicIdParam}`);
+      console.log(`Prompt: ${prompt}`);
+
       if (!prompt || typeof prompt !== 'string') {
         return res.status(400).json({ error: "Prompt is required" });
       }
@@ -291,21 +295,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find the epic in the PRD structure since epics are stored there
       const allPrds = await storage.getAllPrds();
       let epic = null;
-      let prdId = null;
+      let foundPrdId = null;
+      
+      console.log(`Looking for epic ${epicIdParam} in ${allPrds.length} PRDs`);
       
       // Search through all PRDs to find the epic
       for (const prd of allPrds) {
+        console.log(`Checking PRD ${prd.id}, has content: ${!!prd.content}`);
         if (prd.content && (prd.content as any).epics) {
           const content = prd.content as any;
+          console.log(`PRD ${prd.id} has ${content.epics.length} epics`);
           const foundEpic = content.epics.find((e: any) => e.id === epicIdParam);
           if (foundEpic) {
-            epic = { ...foundEpic, prdId: prd.id };
-            prdId = prd.id;
+            epic = foundEpic;
+            foundPrdId = prd.id;
+            console.log(`Found epic ${epicIdParam} in PRD ${prd.id}`);
             break;
           }
         }
       }
-      if (!epic) {
+      
+      if (!epic || !foundPrdId) {
+        console.log(`Epic ${epicIdParam} not found in any PRD`);
         return res.status(404).json({ error: "Epic not found" });
       }
 
@@ -366,10 +377,9 @@ Epic Description: ${epic.content?.description || 'No description available'}`
       });
 
       // Update the PRD epic list to add the new user story
-      if (prdId) {
-        const prd = await storage.getPrd(prdId);
-        if (prd && prd.content && (prd.content as any).epics) {
-        const content = prd.content as any;
+      const targetPrd = await storage.getPrd(foundPrdId);
+      if (targetPrd && targetPrd.content && (targetPrd.content as any).epics) {
+        const content = targetPrd.content as any;
         const epicIndex = content.epics.findIndex((e: any) => e.id === epicIdParam);
         
         if (epicIndex !== -1) {
@@ -377,9 +387,8 @@ Epic Description: ${epic.content?.description || 'No description available'}`
             content.epics[epicIndex].userStories = [];
           }
           content.epics[epicIndex].userStories.push(result.userStory);
-          await storage.updatePrd(prd.id, { content });
-          console.log(`Added user story to epic ${epicIdParam} in PRD ${prd.id}`);
-        }
+          await storage.updatePrd(targetPrd.id, { content });
+          console.log(`Added user story to epic ${epicIdParam} in PRD ${targetPrd.id}`);
         }
       }
 
