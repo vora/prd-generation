@@ -17,16 +17,21 @@ export async function parseUploadedFile(
     
     let content: string;
     
-    // Handle different file types
-    if (originalname.toLowerCase().endsWith('.txt') || fileType?.mime === 'text/plain') {
+    // Handle different file types - check filename first, then MIME type
+    const fileName = originalname.toLowerCase();
+    
+    if (fileName.endsWith('.txt') || fileType?.mime === 'text/plain' || (!fileType && fileName.includes('.'))) {
       content = buffer.toString('utf-8');
-    } else if (originalname.toLowerCase().endsWith('.pdf') || fileType?.mime === 'application/pdf') {
-      // For PDF parsing, we'll use a simple text extraction
-      // In a real implementation, you'd use a library like pdf-parse
+    } else if (fileName.endsWith('.pdf') || fileType?.mime === 'application/pdf') {
       content = await parsePDF(buffer);
-    } else if (originalname.toLowerCase().endsWith('.docx') || fileType?.mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-      // For DOCX parsing, you'd use a library like mammoth
+    } else if (fileName.endsWith('.docx') || fileType?.mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
       content = await parseDOCX(buffer);
+    } else if (fileName.endsWith('.doc') || fileType?.mime === 'application/msword') {
+      // Try to handle older Word docs as text
+      content = buffer.toString('utf-8');
+    } else if (!fileType || fileType.mime === 'application/octet-stream') {
+      // If file type detection fails, try treating as text
+      content = buffer.toString('utf-8');
     } else {
       throw new Error(`Unsupported file type: ${fileType?.mime || 'unknown'}`);
     }
