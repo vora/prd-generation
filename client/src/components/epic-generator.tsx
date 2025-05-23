@@ -119,6 +119,9 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   }
 
   const hasEpics = epicsData && epicsData.length > 0;
+  
+  // Debug logging
+  console.log('Epics data:', epicsData);
 
   return (
     <div className="space-y-6">
@@ -183,10 +186,14 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
       {/* Epics Display */}
       {hasEpics && (
         <div className="space-y-4">
-          {epicsData.map((epicRecord) => (
-            <div key={epicRecord.id} className="space-y-4">
-              {(epicRecord.content as Epic[]).map((epic) => (
-                <Card key={epic.id} className="border border-border">
+          {epicsData.map((epicRecord) => {
+            console.log('Epic record:', epicRecord);
+            const epics = Array.isArray(epicRecord.content) ? epicRecord.content : (epicRecord.content as any)?.epics || [];
+            console.log('Parsed epics:', epics);
+            return (
+              <div key={epicRecord.id} className="space-y-4">
+                {epics.map((epic: any) => (
+                <Card key={epic.id || epicIndex} className="border border-border">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -285,9 +292,10 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
                     </Collapsible>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          ))}
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
 
