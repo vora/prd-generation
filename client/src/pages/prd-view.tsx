@@ -103,7 +103,7 @@ export default function PRDView() {
                 
                 <button 
                   onClick={() => {
-                    fetch(`/api/prds/${prd.id}/generate-code`, {
+                    fetch(`/api/prds/${prd.id}/generate-app`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({})
@@ -111,20 +111,10 @@ export default function PRDView() {
                     .then(response => response.json())
                     .then(data => {
                       if (data.success) {
-                        // Create downloadable content with all files
-                        const allFiles = [
-                          ...data.components,
-                          ...data.pages,
-                          ...data.hooks,
-                          ...data.utils,
-                          ...data.config,
-                          { path: 'package.json', content: JSON.stringify(data.packageJson, null, 2) },
-                          { path: 'README.md', content: data.readme },
-                          { path: 'DEPLOY.md', content: data.deployInstructions }
-                        ];
-                        
+                        // Create downloadable content
+                        const allFiles = data.appFiles.allFiles;
                         const zipContent = allFiles.map(file => 
-                          `=== ${file.path} ===\n${file.content}\n`
+                          `=== ${file.filename} ===\n${file.content}\n`
                         ).join('\n\n');
                         
                         const blob = new Blob([zipContent], { type: 'text/plain' });
@@ -137,18 +127,18 @@ export default function PRDView() {
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        alert(`🎉 SUCCESS! Generated complete application "${data.appName}"!\n\n📦 ${allFiles.length} files created including:\n✓ ${data.pages.length} full-featured pages\n✓ ${data.components.length} reusable components\n✓ ${data.hooks.length} custom hooks\n✓ Complete package.json & config\n✓ Deployment instructions\n\nYour app is downloading now!`);
+                        alert(`🎉 SUCCESS! Built "${data.appName}" application!\n\n📦 Generated ${data.filesGenerated} files:\n✓ ${data.appFiles.pages.length} pages\n✓ ${data.appFiles.components.length} components\n✓ Package.json & config files\n✓ Complete README\n\nReady to run: npm install && npm run dev`);
                       } else {
-                        alert('Error generating application');
+                        alert(`Error: ${data.error || 'Failed to generate application'}`);
                       }
                     })
                     .catch(() => {
-                      alert('Failed to generate application');
+                      alert('Failed to build application');
                     });
                   }}
-                  className="mb-6 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors flex items-center gap-2"
+                  className="mb-6 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors"
                 >
-                  🚀 Generate Complete App
+                  🚀 Build Complete App
                 </button>
                 
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg p-6 border">
