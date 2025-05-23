@@ -7,6 +7,7 @@ import type { Prd } from "@shared/schema";
 
 export default function PRDView() {
   const [, params] = useRoute("/prd/:id");
+  const [activeTab, setActiveTab] = useState("prd");
   const [, setLocation] = useLocation();
   
   const { data: prds, isLoading } = useQuery<Prd[]>({

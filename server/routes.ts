@@ -23,6 +23,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate epics from PRD
+  app.post("/api/prds/:id/generate-epics", async (req, res) => {
+    try {
+      const prdId = parseInt(req.params.id);
+      const prd = await storage.getPrd(prdId);
+      
+      if (!prd) {
+        return res.status(404).json({ error: "PRD not found" });
+      }
+
+      // Check if epics already exist for this PRD
+      const existingEpics = await storage.getEpicsByPrdId(prdId);
+      if (existingEpics.length > 0) {
+        return res.status(400).json({ error: "Epics already exist for this PRD" });
+      }
+
+      const { generateEpicsFromPRD } = await import("./lib/openai");
+      const { epics, processingTime } = await generateEpicsFromPRD(prd.title, prd.content as any);
+
+      // Save epics to storage
+      const epicRecord = await storage.createEpic({
+        prdId,
+        title: `${prd.title} - Epics`,
+        content: epics,
+        processingTime,
+      });
+
+      res.json(epicRecord);
+    } catch (error) {
+      console.error("Error generating epics:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to generate epics" 
+      });
+    }
+  });
+
+  // Get epics for a PRD
+  app.get("/api/prds/:id/epics", async (req, res) => {
+    try {
+      const prdId = parseInt(req.params.id);
+      const epics = await storage.getEpicsByPrdId(prdId);
+      res.json(epics);
+    } catch (error) {
+      console.error("Error fetching epics:", error);
+      res.status(500).json({ error: "Failed to fetch epics" });
+    }
+  });
+
+  // Delete epic
+  app.delete("/api/epics/:id", async (req, res) => {
+    try {
+      const epicId = parseInt(req.params.id);
+      const success = await storage.deleteEpic(epicId);
+      
+      if (!success) {
+        return res.status(404).json({ error: "Epic not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting epic:", error);
+      res.status(500).json({ error: "Failed to delete epic" });
+    }
+  });
+
   // Get specific PRD
   app.get("/api/prds/:id", async (req, res) => {
     try {

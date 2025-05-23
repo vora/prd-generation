@@ -11,19 +11,30 @@ export interface IStorage {
   createPrd(prd: InsertPrd): Promise<Prd>;
   updatePrd(id: number, updates: Partial<InsertPrd>): Promise<Prd | undefined>;
   deletePrd(id: number): Promise<boolean>;
+  
+  // Epic operations
+  getEpic(id: number): Promise<EpicRecord | undefined>;
+  getEpicsByPrdId(prdId: number): Promise<EpicRecord[]>;
+  createEpic(epic: InsertEpic): Promise<EpicRecord>;
+  updateEpic(id: number, updates: Partial<InsertEpic>): Promise<EpicRecord | undefined>;
+  deleteEpic(id: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private prds: Map<number, Prd>;
+  private epics: Map<number, EpicRecord>;
   private currentUserId: number;
   private currentPrdId: number;
+  private currentEpicId: number;
 
   constructor() {
     this.users = new Map();
     this.prds = new Map();
+    this.epics = new Map();
     this.currentUserId = 1;
     this.currentPrdId = 1;
+    this.currentEpicId = 1;
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -74,7 +85,45 @@ export class MemStorage implements IStorage {
   }
 
   async deletePrd(id: number): Promise<boolean> {
+    // Also delete associated epics
+    for (const [epicId, epic] of this.epics.entries()) {
+      if (epic.prdId === id) {
+        this.epics.delete(epicId);
+      }
+    }
     return this.prds.delete(id);
+  }
+
+  async getEpic(id: number): Promise<EpicRecord | undefined> {
+    return this.epics.get(id);
+  }
+
+  async getEpicsByPrdId(prdId: number): Promise<EpicRecord[]> {
+    return Array.from(this.epics.values()).filter(epic => epic.prdId === prdId);
+  }
+
+  async createEpic(insertEpic: InsertEpic): Promise<EpicRecord> {
+    const id = this.currentEpicId++;
+    const epic: EpicRecord = {
+      ...insertEpic,
+      id,
+      createdAt: new Date(),
+    };
+    this.epics.set(id, epic);
+    return epic;
+  }
+
+  async updateEpic(id: number, updates: Partial<InsertEpic>): Promise<EpicRecord | undefined> {
+    const existing = this.epics.get(id);
+    if (!existing) return undefined;
+    
+    const updated: EpicRecord = { ...existing, ...updates };
+    this.epics.set(id, updated);
+    return updated;
+  }
+
+  async deleteEpic(id: number): Promise<boolean> {
+    return this.epics.delete(id);
   }
 }
 
