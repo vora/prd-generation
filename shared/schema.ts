@@ -22,50 +22,55 @@ export type Prd = typeof prds.$inferSelect;
 
 // PRD Content Structure
 export const prdContentSchema = z.object({
-  overview: z.string(),
-  goals: z.array(z.object({
-    objective: z.string(),
-    metric: z.string(),
-    target: z.string()
+  purposeAndVision: z.string(),
+  scope: z.object({
+    inScope: z.array(z.string()),
+    outOfScope: z.array(z.string())
+  }),
+  targetUsersAndPersonas: z.array(z.object({
+    name: z.string(),
+    description: z.string(),
+    characteristics: z.array(z.string()),
+    needs: z.array(z.string())
   })),
-  features: z.array(z.object({
+  coreFeatures: z.array(z.object({
     name: z.string(),
     description: z.string(),
     priority: z.string(),
     userStory: z.string()
   })),
-  technicalRequirements: z.array(z.object({
-    category: z.string(),
-    requirement: z.string(),
-    rationale: z.string()
-  })),
-  userWorkflows: z.array(z.object({
-    workflow: z.string(),
-    steps: z.array(z.string()),
-    painPoints: z.array(z.string())
-  })),
-  acceptanceCriteria: z.array(z.object({
-    feature: z.string(),
-    criteria: z.array(z.string())
-  })),
+  uiUxAspirations: z.object({
+    style: z.string(),
+    tone: z.string(),
+    userExperience: z.string()
+  }),
   nonFunctionalRequirements: z.array(z.object({
     type: z.string(),
     requirement: z.string(),
-    standard: z.string()
+    rationale: z.string()
   })),
-  futureEnhancements: z.array(z.object({
+  assumptions: z.array(z.string()),
+  dependencies: z.array(z.object({
+    type: z.string(),
+    dependency: z.string(),
+    impact: z.string()
+  })),
+  risksAndMitigations: z.array(z.object({
+    risk: z.string(),
+    impact: z.string(),
+    mitigation: z.string()
+  })),
+  successMetrics: z.array(z.object({
+    metric: z.string(),
+    target: z.string(),
+    timeframe: z.string()
+  })),
+  futureRoadmap: z.array(z.object({
     name: z.string(),
     description: z.string(),
     businessValue: z.string(),
     timeframe: z.string()
-  })),
-  userPersonas: z.array(z.object({
-    name: z.string(),
-    description: z.string(),
-    painPoints: z.array(z.string()),
-    goals: z.array(z.string()),
-    behaviors: z.array(z.string())
-  })).optional()
+  }))
 });
 
 export type PrdContent = z.infer<typeof prdContentSchema>;

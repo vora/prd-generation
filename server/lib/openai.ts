@@ -20,17 +20,19 @@ export async function generatePRDFromConversation(
 
 Based on the conversation provided, extract key insights and generate a professional, detailed PRD with the following comprehensive structure:
 
-## CORE SECTIONS:
+## REQUIRED PRD SECTIONS:
 1. **Title**: A clear, descriptive title for the product/feature
-2. **Overview**: Executive summary of the product vision, business context, and key value proposition
-3. **Goals & Success Metrics**: Specific, measurable business objectives with KPIs where possible
-4. **Core Features**: Detailed feature specifications with priority levels (P0, P1, P2)
-5. **Technical Requirements**: Architecture, platform, security, performance, scalability needs
-6. **User Experience & Workflows**: Key user journeys and interaction patterns
-7. **Acceptance Criteria**: Specific, testable criteria for each core feature
-8. **Non-Functional Requirements**: Performance, security, accessibility, compliance standards
-9. **Future Roadmap**: Value-added features and enhancements for future releases
-${options.extractPersonas ? '10. **User Personas**: User segments with needs, pain points, and behaviors' : ''}
+2. **Purpose and Vision**: Clear statement of product purpose and long-term vision
+3. **Scope**: What is explicitly in-scope and out-of-scope for this product/feature
+4. **Target Users and Personas**: Detailed user segments with characteristics and needs
+5. **Core Features**: Detailed feature specifications with priority levels (P0, P1, P2)
+6. **UI/UX Aspirations**: Style, tone, and user experience goals (if mentioned in conversation)
+7. **Non-Functional Requirements**: Performance, reliability, scalability, security requirements
+8. **Assumptions**: Key assumptions being made about users, market, technology, etc.
+9. **Dependencies**: Technical, business, or external dependencies that could impact delivery
+10. **Risks and Mitigations**: Potential risks and proposed mitigation strategies
+11. **Success Metrics**: Specific, measurable criteria for determining product success
+12. **Future Roadmap**: Value-added features and enhancements for future releases
 
 ## ANALYSIS FOCUS:
 - Extract actual user needs, pain points, and desired outcomes
@@ -42,25 +44,31 @@ ${options.extractPersonas ? '10. **User Personas**: User segments with needs, pa
 - Anticipate future enhancements and extensibility needs
 
 ## QUALITY STANDARDS:
+- Use only information from the conversation - no assumptions beyond what's discussed
+- If anything is unclear or not mentioned, mark it with [NEEDS CLARITY]
 - Features should be specific, actionable, and measurable
-- Acceptance criteria should be testable and unambiguous  
-- Technical requirements should address scalability and security
-- Future features should align with core product vision
 - All requirements should trace back to user value
+- Format with proper headings and bullet points where appropriate
+- Be comprehensive but concise
 
 Respond with JSON in this exact format:
 {
   "title": "Product/Feature Title",
   "content": {
-    "overview": "Comprehensive executive summary including business context, target users, and core value proposition",
-    "goals": [
+    "purposeAndVision": "Clear statement of product purpose and long-term vision",
+    "scope": {
+      "inScope": ["What is included in this product/feature"],
+      "outOfScope": ["What is explicitly excluded"]
+    },
+    "targetUsersAndPersonas": [
       {
-        "objective": "Specific business goal",
-        "metric": "How success will be measured",
-        "target": "Specific target value or outcome"
+        "name": "Persona Name",
+        "description": "Detailed persona description",
+        "characteristics": ["Key characteristics"],
+        "needs": ["Primary needs and pain points"]
       }
     ],
-    "features": [
+    "coreFeatures": [
       {
         "name": "Feature Name",
         "description": "Detailed feature description including user value",
@@ -68,41 +76,48 @@ Respond with JSON in this exact format:
         "userStory": "As a [user], I want [capability] so that [benefit]"
       }
     ],
-    "technicalRequirements": [
+    "uiUxAspirations": {
+      "style": "[NEEDS CLARITY] if not mentioned",
+      "tone": "[NEEDS CLARITY] if not mentioned",
+      "userExperience": "Description of desired user experience goals"
+    },
+    "nonFunctionalRequirements": [
       {
-        "category": "Architecture|Platform|Security|Performance|Integration",
-        "requirement": "Specific technical need",
+        "type": "Performance|Reliability|Scalability|Security",
+        "requirement": "Specific requirement",
         "rationale": "Why this is needed"
       }
     ],
-    "userWorkflows": [
+    "assumptions": ["Key assumptions about users, market, technology, etc."],
+    "dependencies": [
       {
-        "workflow": "Workflow name",
-        "steps": ["Step 1", "Step 2", "Step 3"],
-        "painPoints": ["Current pain point addressed"]
+        "type": "Technical|Business|External",
+        "dependency": "Description of dependency",
+        "impact": "How this could affect delivery"
       }
     ],
-    "acceptanceCriteria": [
+    "risksAndMitigations": [
       {
-        "feature": "Feature name",
-        "criteria": ["Given [context], when [action], then [outcome]"]
+        "risk": "Description of potential risk",
+        "impact": "High|Medium|Low",
+        "mitigation": "Proposed mitigation strategy"
       }
     ],
-    "nonFunctionalRequirements": [
+    "successMetrics": [
       {
-        "type": "Performance|Security|Accessibility|Compliance",
-        "requirement": "Specific requirement",
-        "standard": "Measurable standard or benchmark"
+        "metric": "Specific measurable metric",
+        "target": "Target value or outcome",
+        "timeframe": "When this should be achieved"
       }
     ],
-    "futureEnhancements": [
+    "futureRoadmap": [
       {
         "name": "Future feature name",
         "description": "Value-added capability for future releases",
         "businessValue": "Expected business impact",
-        "timeframe": "Estimated timeline (Phase 2, Q2 2025, etc.)"
+        "timeframe": "Estimated timeline"
       }
-    ]${options.extractPersonas ? ',\n    "userPersonas": [{"name": "Persona Name", "description": "Detailed persona description", "painPoints": ["Pain 1", "Pain 2"], "goals": ["Goal 1", "Goal 2"], "behaviors": ["Behavior 1", "Behavior 2"]}]' : ''}
+    ]
   }
 }`;
 
