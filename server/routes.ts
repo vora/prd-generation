@@ -1,18 +1,22 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { generatePRDFromConversation, generateEpicsFromPRD } from "./lib/openai";
-import OpenAI from "openai";
-import { parseUploadedFile, validateFileType, validateFileSize } from "./lib/fileParser";
 import { insertPrdSchema, prdContentSchema } from "@shared/schema";
-import { z } from "zod";
-import multer from "multer";
+import type { Express, Request, Response } from "express";
 import { unlink } from "fs/promises";
-import type { Request, Response, NextFunction } from "express";
+import { createServer, type Server } from "http";
+import multer from "multer";
+import {
+  parseUploadedFile,
+  validateFileSize,
+  validateFileType,
+} from "./lib/fileParser";
+import {
+  generateEpicsFromPRD,
+  generatePRDFromConversation,
+} from "./lib/openai";
+import { storage } from "./storage";
 
 // Configure multer for file uploads
 const upload = multer({
-  dest: 'uploads/',
+  dest: "uploads/",
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
@@ -51,142 +55,167 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload conversation and generate PRD
-  app.post("/api/prds/generate", upload.single('file'), async (req: Request, res: Response) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-
-      // Validate file
-      if (!validateFileType(req.file.mimetype, req.file.originalname)) {
-        await unlink(req.file.path);
-        return res.status(400).json({ error: "Invalid file type. Please upload TXT or DOCX files." });
-      }
-
-      if (!validateFileSize(req.file.size)) {
-        await unlink(req.file.path);
-        return res.status(400).json({ error: "File too large. Maximum size is 10MB." });
-      }
-
-      // Parse file content
-      const parsedFile = await parseUploadedFile(req.file.path, req.file.mimetype, req.file.originalname);
-      
-      // Clean up uploaded file
-      await unlink(req.file.path);
-
-      if (!parsedFile.content || parsedFile.content.trim().length === 0) {
-        return res.status(400).json({ error: "File appears to be empty or could not be read" });
-      }
-
-      // Generate PRD using OpenAI
-      console.log(`Generating PRD from file: ${parsedFile.filename}`);
-      const result = await generatePRDFromConversation(parsedFile.content, parsedFile.filename);
-
-      // Validate PRD content
-      const validatedContent = prdContentSchema.parse(result.content);
-
-      // Create PRD record
-      const prdData = {
-        title: result.title,
-        content: validatedContent,
-        status: "draft" as const,
-        originalFileName: parsedFile.filename,
-        processingTime: result.processingTime
-      };
-
-      const validatedPrd = insertPrdSchema.parse(prdData);
-      const prd = await storage.createPrd(validatedPrd);
-
-      res.json({
-        success: true,
-        prd,
-        processingTime: result.processingTime
-      });
-
-    } catch (error: any) {
-      console.error("Error generating PRD:", error);
-      
-      // Clean up file if it still exists
-      if (req.file?.path) {
-        try {
-          await unlink(req.file.path);
-        } catch (unlinkError) {
-          console.error("Error cleaning up file:", unlinkError);
+  app.post(
+    "/api/prds/generate",
+    upload.single("file"),
+    async (req: Request, res: Response) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: "No file uploaded" });
         }
-      }
 
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ 
-          error: "Invalid PRD format generated",
-          details: error.errors 
+        // Validate file
+        if (!validateFileType(req.file.mimetype, req.file.originalname)) {
+          await unlink(req.file.path);
+          return res.status(400).json({
+            error: "Invalid file type. Please upload TXT or DOCX files.",
+          });
+        }
+
+        if (!validateFileSize(req.file.size)) {
+          await unlink(req.file.path);
+          return res
+            .status(400)
+            .json({ error: "File too large. Maximum size is 10MB." });
+        }
+
+        // Parse file content
+        const parsedFile = await parseUploadedFile({
+          path: req.file.path,
+          mimeType: req.file.mimetype,
+          originalName: req.file.originalname,
+        });
+
+        // Clean up uploaded file
+        await unlink(req.file.path);
+
+        if (!parsedFile.content || parsedFile.content.trim().length === 0) {
+          return res
+            .status(400)
+            .json({ error: "File appears to be empty or could not be read" });
+        }
+
+        // Generate PRD using OpenAI
+        console.log(`Generating PRD from file: ${parsedFile.filename}`);
+        const result = await generatePRDFromConversation(
+          parsedFile.content,
+          parsedFile.filename
+        );
+
+        // Validate PRD content
+        const validatedContent = prdContentSchema.parse(result.content);
+
+        // Create PRD record
+        const prdData = {
+          title: result.title,
+          content: validatedContent,
+          status: "draft" as const,
+          originalFileName: parsedFile.filename,
+          processingTime: result.processingTime,
+        };
+
+        const validatedPrd = insertPrdSchema.parse(prdData);
+        const prd = await storage.createPrd(validatedPrd);
+
+        res.json({
+          success: true,
+          prd,
+          processingTime: result.processingTime,
+        });
+      } catch (error: any) {
+        console.error("Error generating PRD:", error);
+
+        // Clean up file if it still exists
+        if (req.file?.path) {
+          try {
+            await unlink(req.file.path);
+          } catch (unlinkError) {
+            console.error("Error cleaning up file:", unlinkError);
+          }
+        }
+
+        if (error.name === "ZodError") {
+          return res.status(400).json({
+            error: "Invalid PRD format generated",
+            details: error.errors,
+          });
+        }
+
+        res.status(500).json({
+          error: "Failed to generate PRD",
+          details: error.message,
         });
       }
-
-      res.status(500).json({ 
-        error: "Failed to generate PRD",
-        details: error.message 
-      });
     }
-  });
+  );
 
   // Generate epics from PRD
-  app.post("/api/prds/:id/generate-epics", async (req: Request, res: Response) => {
-    try {
-      const prdId = parseInt(req.params.id);
-      if (isNaN(prdId)) {
-        return res.status(400).json({ error: "Invalid PRD ID" });
+  app.post(
+    "/api/prds/:id/generate-epics",
+    async (req: Request, res: Response) => {
+      try {
+        const prdId = parseInt(req.params.id);
+        if (isNaN(prdId)) {
+          return res.status(400).json({ error: "Invalid PRD ID" });
+        }
+
+        const prd = await storage.getPrd(prdId);
+        if (!prd) {
+          return res.status(404).json({ error: "PRD not found" });
+        }
+
+        console.log(`Found PRD: ${prd.title}`);
+
+        // Get existing epics for this PRD
+        const existingEpics = await storage.getEpicsByPrdId(prdId);
+        console.log(
+          `Clearing ${existingEpics.length} existing epics for PRD ${prdId}`
+        );
+
+        // Clear existing epics
+        for (const epic of existingEpics) {
+          await storage.deleteEpic(epic.id);
+        }
+
+        console.log("Starting epic generation...");
+        const result = await generateEpicsFromPRD(prd.content, prd.title);
+        console.log("Epic generation completed:", {
+          title: result.title,
+          content: {
+            epics: result.content.epics.map((e: any) => ({
+              ...e,
+              userStories: `${e.userStories?.length || 0} stories`,
+            })),
+          },
+          processingTime: result.processingTime,
+        });
+
+        // Store the epic result in the PRD content
+        const updatedContent = {
+          ...prd.content,
+          epics: result.content.epics,
+        };
+
+        await storage.updatePrd(prdId, {
+          content: updatedContent,
+          processingTime: result.processingTime,
+        });
+
+        res.json({
+          prdId,
+          title: result.title,
+          content: result.content,
+          processingTime: result.processingTime,
+        });
+      } catch (error: any) {
+        console.error("Error generating epics:", error);
+        res.status(500).json({
+          error: "Failed to generate epics",
+          details: error.message,
+        });
       }
-
-      const prd = await storage.getPrd(prdId);
-      if (!prd) {
-        return res.status(404).json({ error: "PRD not found" });
-      }
-
-      console.log(`Found PRD: ${prd.title}`);
-
-      // Get existing epics for this PRD
-      const existingEpics = await storage.getEpicsByPrdId(prdId);
-      console.log(`Clearing ${existingEpics.length} existing epics for PRD ${prdId}`);
-
-      // Clear existing epics
-      for (const epic of existingEpics) {
-        await storage.deleteEpic(epic.id);
-      }
-
-      console.log("Starting epic generation...");
-      const result = await generateEpicsFromPRD(prd.content, prd.title);
-      console.log("Epic generation completed:", {
-        title: result.title,
-        content: { epics: result.content.epics.map((e: any) => ({ ...e, userStories: `${e.userStories?.length || 0} stories` })) },
-        processingTime: result.processingTime
-      });
-
-      // Store the epic result in the PRD content
-      const updatedContent = {
-        ...prd.content,
-        epics: result.content.epics
-      };
-
-      await storage.updatePrd(prdId, { 
-        content: updatedContent,
-        processingTime: result.processingTime 
-      });
-
-      res.json({
-        prdId,
-        title: result.title,
-        content: result.content,
-        processingTime: result.processingTime
-      });
-
-    } catch (error: any) {
-      console.error("Error generating epics:", error);
-      res.status(500).json({ 
-        error: "Failed to generate epics",
-        details: error.message 
-      });
     }
-  });
+  );
 
   // Get epics for a PRD
   app.get("/api/prds/:id/epics", async (req: Request, res: Response) => {
@@ -204,11 +233,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if PRD has epics in its content
       if (prd.content && (prd.content as any).epics) {
         const epicsContent = (prd.content as any).epics;
-        res.json([{
-          prdId: prd.id,
-          title: `Epics for ${prd.title}`,
-          content: { epics: epicsContent }
-        }]);
+        res.json([
+          {
+            prdId: prd.id,
+            title: `Epics for ${prd.title}`,
+            content: { epics: epicsContent },
+          },
+        ]);
       } else {
         res.json([]);
       }
@@ -239,75 +270,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Generate complete application from PRD
-  app.post('/api/prds/:id/generate-app', async (req: Request, res: Response) => {
-    try {
-      const prdId = parseInt(req.params.id);
-      if (isNaN(prdId)) {
-        return res.status(400).json({ error: "Invalid PRD ID" });
+  app.post(
+    "/api/prds/:id/generate-app",
+    async (req: Request, res: Response) => {
+      try {
+        const prdId = parseInt(req.params.id);
+        if (isNaN(prdId)) {
+          return res.status(400).json({ error: "Invalid PRD ID" });
+        }
+
+        const prd = await storage.getPrd(prdId);
+        if (!prd) {
+          return res.status(404).json({ error: "PRD not found" });
+        }
+
+        console.log(`🚀 Building complete application: ${prd.title}`);
+
+        // Extract features and requirements from PRD content
+        const prdContent = prd.content as any;
+        const features = prdContent.features || [];
+        const overview = prdContent.overview || "";
+        const goals = prdContent.goals || [];
+
+        // Also get epics if they exist
+        const epics = prdContent.epics || [];
+
+        console.log(
+          `📋 Found ${features.length} features, ${epics.length} epics`
+        );
+
+        // Generate complete application files
+        const appFiles = generateCompleteAppFromPRD(
+          prd.title,
+          prdContent,
+          epics
+        );
+
+        res.json({
+          success: true,
+          message: `🎉 Successfully built ${prd.title}!`,
+          appName: prd.title,
+          filesGenerated: appFiles.allFiles.length,
+          appFiles,
+        });
+      } catch (error: any) {
+        console.error("❌ Error building application:", error);
+        res.status(500).json({
+          error: "Failed to build application",
+          details: error.message,
+        });
       }
-
-      const prd = await storage.getPrd(prdId);
-      if (!prd) {
-        return res.status(404).json({ error: "PRD not found" });
-      }
-
-      console.log(`🚀 Building complete application: ${prd.title}`);
-
-      // Extract features and requirements from PRD content
-      const prdContent = prd.content as any;
-      const features = prdContent.features || [];
-      const overview = prdContent.overview || "";
-      const goals = prdContent.goals || [];
-
-      // Also get epics if they exist
-      const epics = prdContent.epics || [];
-
-      console.log(`📋 Found ${features.length} features, ${epics.length} epics`);
-
-      // Generate complete application files
-      const appFiles = generateCompleteAppFromPRD(prd.title, prdContent, epics);
-
-      res.json({
-        success: true,
-        message: `🎉 Successfully built ${prd.title}!`,
-        appName: prd.title,
-        filesGenerated: appFiles.allFiles.length,
-        appFiles
-      });
-
-    } catch (error: any) {
-      console.error("❌ Error building application:", error);
-      res.status(500).json({ 
-        error: "Failed to build application",
-        details: error.message 
-      });
     }
-  });
+  );
 
   const httpServer = createServer(app);
   return httpServer;
 }
 
 // Generate complete application from PRD content
-function generateCompleteAppFromPRD(appTitle: string, prdContent: any, epics: any[]) {
-  const appName = appTitle.toLowerCase().replace(/\s+/g, '-');
+function generateCompleteAppFromPRD(
+  appTitle: string,
+  prdContent: any,
+  epics: any[]
+) {
+  const appName = appTitle.toLowerCase().replace(/\s+/g, "-");
   const features = prdContent.features || [];
   const overview = prdContent.overview || "";
-  
+
   // Generate App.tsx
   const appComponent = generateMainApp(appTitle, features, epics);
-  
+
   // Generate pages based on features and epics
   const pages = [];
-  
+
   // Main dashboard
   pages.push(generateDashboardPage(appTitle, features));
-  
+
   // Feature-based pages
   features.forEach((feature: any, index: number) => {
     pages.push(generateFeaturePage(feature, index));
   });
-  
+
   // Epic-based pages
   epics.forEach((epic: any) => {
     pages.push(generateEpicPage(epic));
@@ -319,49 +362,49 @@ function generateCompleteAppFromPRD(appTitle: string, prdContent: any, epics: an
     generateDataTable(),
     generateSearchBar(),
     generateStatsCard(),
-    generateFormModal()
+    generateFormModal(),
   ];
 
   // Generate configuration files
   const configFiles = [
     {
-      filename: 'package.json',
-      content: JSON.stringify(generatePackageJson(appName), null, 2)
+      filename: "package.json",
+      content: JSON.stringify(generatePackageJson(appName), null, 2),
     },
     {
-      filename: 'vite.config.ts',
-      content: generateViteConfig()
+      filename: "vite.config.ts",
+      content: generateViteConfig(),
     },
     {
-      filename: 'tailwind.config.js',
-      content: generateTailwindConfig()
+      filename: "tailwind.config.js",
+      content: generateTailwindConfig(),
     },
     {
-      filename: 'tsconfig.json',
-      content: JSON.stringify(generateTSConfig(), null, 2)
+      filename: "tsconfig.json",
+      content: JSON.stringify(generateTSConfig(), null, 2),
     },
     {
-      filename: 'index.html',
-      content: generateIndexHTML(appTitle)
-    }
+      filename: "index.html",
+      content: generateIndexHTML(appTitle),
+    },
   ];
 
   // Generate utils and hooks
   const utils = [
     {
-      filename: 'src/utils/api.ts',
-      content: generateApiUtils()
+      filename: "src/utils/api.ts",
+      content: generateApiUtils(),
     },
     {
-      filename: 'src/hooks/useData.ts',
-      content: generateDataHook()
-    }
+      filename: "src/hooks/useData.ts",
+      content: generateDataHook(),
+    },
   ];
 
   // Generate README
   const readme = {
-    filename: 'README.md',
-    content: generateREADME(appTitle, prdContent, features, epics)
+    filename: "README.md",
+    content: generateREADME(appTitle, prdContent, features, epics),
   };
 
   const allFiles = [
@@ -370,7 +413,7 @@ function generateCompleteAppFromPRD(appTitle: string, prdContent: any, epics: an
     ...components,
     ...configFiles,
     ...utils,
-    readme
+    readme,
   ];
 
   return {
@@ -386,20 +429,32 @@ function generateCompleteAppFromPRD(appTitle: string, prdContent: any, epics: an
       pages: pages.length,
       components: components.length,
       features: features.length,
-      epics: epics.length
-    }
+      epics: epics.length,
+    },
   };
 }
 
 function generateMainApp(appTitle: string, features: any[], epics: any[]) {
   return {
-    filename: 'src/App.tsx',
+    filename: "src/App.tsx",
     content: `import React from 'react';
 import { Router, Route, Switch } from 'wouter';
 import Navigation from './components/Navigation';
 import Dashboard from './pages/Dashboard';
-${features.map((_, i) => `import Feature${i + 1}Page from './pages/Feature${i + 1}Page';`).join('\n')}
-${epics.map((epic: any) => `import ${epic.title.replace(/\s+/g, '')}Page from './pages/${epic.title.replace(/\s+/g, '')}Page';`).join('\n')}
+${features
+  .map(
+    (_, i) => `import Feature${i + 1}Page from './pages/Feature${i + 1}Page';`
+  )
+  .join("\n")}
+${epics
+  .map(
+    (epic: any) =>
+      `import ${epic.title.replace(
+        /\s+/g,
+        ""
+      )}Page from './pages/${epic.title.replace(/\s+/g, "")}Page';`
+  )
+  .join("\n")}
 
 function App() {
   return (
@@ -408,21 +463,38 @@ function App() {
       <Router>
         <Switch>
           <Route path="/" component={Dashboard} />
-          ${features.map((_, i) => `<Route path="/feature-${i + 1}" component={Feature${i + 1}Page} />`).join('\n          ')}
-          ${epics.map((epic: any) => `<Route path="/${epic.title.toLowerCase().replace(/\s+/g, '-')}" component={${epic.title.replace(/\s+/g, '')}Page} />`).join('\n          ')}
+          ${features
+            .map(
+              (_, i) =>
+                `<Route path="/feature-${i + 1}" component={Feature${
+                  i + 1
+                }Page} />`
+            )
+            .join("\n          ")}
+          ${epics
+            .map(
+              (epic: any) =>
+                `<Route path="/${epic.title
+                  .toLowerCase()
+                  .replace(/\s+/g, "-")}" component={${epic.title.replace(
+                  /\s+/g,
+                  ""
+                )}Page} />`
+            )
+            .join("\n          ")}
         </Switch>
       </Router>
     </div>
   );
 }
 
-export default App;`
+export default App;`,
   };
 }
 
 function generateDashboardPage(appTitle: string, features: any[]) {
   return {
-    filename: 'src/pages/Dashboard.tsx',
+    filename: "src/pages/Dashboard.tsx",
     content: `import React from 'react';
 import StatsCard from '../components/StatsCard';
 
@@ -445,11 +517,15 @@ export default function Dashboard() {
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold mb-4">Features</h3>
           <div className="space-y-3">
-            ${features.map((feature: any, i: number) => `
+            ${features
+              .map(
+                (feature: any, i: number) => `
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
               <span>${feature.title || `Feature ${i + 1}`}</span>
               <span className="text-green-600 text-sm">Active</span>
-            </div>`).join('')}
+            </div>`
+              )
+              .join("")}
           </div>
         </div>
 
@@ -473,7 +549,7 @@ export default function Dashboard() {
       </div>
     </div>
   );
-}`
+}`,
   };
 }
 
@@ -490,8 +566,13 @@ export default function Feature${index + 1}Page() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">${feature.title || `Feature ${index + 1}`}</h1>
-        <p className="mt-2 text-gray-600">${feature.description || `Manage and track ${feature.title || 'feature'} data`}</p>
+        <h1 className="text-3xl font-bold text-gray-900">${
+          feature.title || `Feature ${index + 1}`
+        }</h1>
+        <p className="mt-2 text-gray-600">${
+          feature.description ||
+          `Manage and track ${feature.title || "feature"} data`
+        }</p>
       </div>
 
       <div className="bg-white shadow rounded-lg">
@@ -499,7 +580,7 @@ export default function Feature${index + 1}Page() {
           <SearchBar 
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Search ${feature.title || 'items'}..."
+            placeholder="Search ${feature.title || "items"}..."
           />
         </div>
         
@@ -514,12 +595,12 @@ export default function Feature${index + 1}Page() {
       </div>
     </div>
   );
-}`
+}`,
   };
 }
 
 function generateEpicPage(epic: any) {
-  const pageName = epic.title.replace(/\s+/g, '');
+  const pageName = epic.title.replace(/\s+/g, "");
   return {
     filename: `src/pages/${pageName}Page.tsx`,
     content: `import React, { useState } from 'react';
@@ -562,35 +643,44 @@ export default function ${pageName}Page() {
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-4">User Stories</h3>
             <div className="space-y-3">
-              ${(epic.userStories || []).slice(0, 3).map((story: any) => `
+              ${(epic.userStories || [])
+                .slice(0, 3)
+                .map(
+                  (story: any) => `
               <div className="p-3 bg-gray-50 rounded">
                 <p className="font-medium text-sm">${story.title}</p>
                 <p className="text-xs text-gray-600 mt-1">${story.description}</p>
-              </div>`).join('')}
+              </div>`
+                )
+                .join("")}
             </div>
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold mb-4">Goals</h3>
             <ul className="space-y-2">
-              ${(epic.goals || []).map((goal: string) => `
+              ${(epic.goals || [])
+                .map(
+                  (goal: string) => `
               <li className="flex items-center text-sm">
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                 ${goal}
-              </li>`).join('')}
+              </li>`
+                )
+                .join("")}
             </ul>
           </div>
         </div>
       </div>
     </div>
   );
-}`
+}`,
   };
 }
 
 function generateNavigation(appTitle: string, features: any[], epics: any[]) {
   return {
-    filename: 'src/components/Navigation.tsx',
+    filename: "src/components/Navigation.tsx",
     content: `import React from 'react';
 import { Link, useLocation } from 'wouter';
 
@@ -599,10 +689,22 @@ export default function Navigation() {
 
   const navItems = [
     { path: '/', label: 'Dashboard' },
-    ${features.map((feature: any, i: number) => `
-    { path: '/feature-${i + 1}', label: '${feature.title || `Feature ${i + 1}`}' },`).join('')}
-    ${epics.map((epic: any) => `
-    { path: '/${epic.title.toLowerCase().replace(/\s+/g, '-')}', label: '${epic.title}' },`).join('')}
+    ${features
+      .map(
+        (feature: any, i: number) => `
+    { path: '/feature-${i + 1}', label: '${
+          feature.title || `Feature ${i + 1}`
+        }' },`
+      )
+      .join("")}
+    ${epics
+      .map(
+        (epic: any) => `
+    { path: '/${epic.title.toLowerCase().replace(/\s+/g, "-")}', label: '${
+          epic.title
+        }' },`
+      )
+      .join("")}
   ];
 
   return (
@@ -626,13 +728,13 @@ export default function Navigation() {
       </div>
     </nav>
   );
-}`
+}`,
   };
 }
 
 function generateDataTable() {
   return {
-    filename: 'src/components/DataTable.tsx',
+    filename: "src/components/DataTable.tsx",
     content: `import React from 'react';
 
 interface DataTableProps {
@@ -689,13 +791,13 @@ export default function DataTable({ data, searchTerm = '' }: DataTableProps) {
       )}
     </div>
   );
-}`
+}`,
   };
 }
 
 function generateSearchBar() {
   return {
-    filename: 'src/components/SearchBar.tsx',
+    filename: "src/components/SearchBar.tsx",
     content: `import React from 'react';
 
 interface SearchBarProps {
@@ -721,13 +823,13 @@ export default function SearchBar({ value, onChange, placeholder = 'Search...' }
       />
     </div>
   );
-}`
+}`,
   };
 }
 
 function generateStatsCard() {
   return {
-    filename: 'src/components/StatsCard.tsx',
+    filename: "src/components/StatsCard.tsx",
     content: `import React from 'react';
 
 interface StatsCardProps {
@@ -759,13 +861,13 @@ export default function StatsCard({ title, value, change, trend = 'neutral' }: S
       </div>
     </div>
   );
-}`
+}`,
   };
 }
 
 function generateFormModal() {
   return {
-    filename: 'src/components/FormModal.tsx',
+    filename: "src/components/FormModal.tsx",
     content: `import React, { useState } from 'react';
 
 interface FormModalProps {
@@ -803,7 +905,7 @@ export default function FormModal({ isOpen, onClose, title, children }: FormModa
       </div>
     </div>
   );
-}`
+}`,
   };
 }
 
@@ -816,12 +918,12 @@ function generatePackageJson(appName: string) {
     scripts: {
       dev: "vite",
       build: "tsc && vite build",
-      preview: "vite preview"
+      preview: "vite preview",
     },
     dependencies: {
       react: "^18.2.0",
       "react-dom": "^18.2.0",
-      wouter: "^3.0.0"
+      wouter: "^3.0.0",
     },
     devDependencies: {
       "@types/react": "^18.2.15",
@@ -831,8 +933,8 @@ function generatePackageJson(appName: string) {
       vite: "^4.4.5",
       tailwindcss: "^3.3.0",
       autoprefixer: "^10.4.14",
-      postcss: "^8.4.24"
-    }
+      postcss: "^8.4.24",
+    },
   };
 }
 
@@ -879,10 +981,10 @@ function generateTSConfig() {
       strict: true,
       noUnusedLocals: true,
       noUnusedParameters: true,
-      noFallthroughCasesInSwitch: true
+      noFallthroughCasesInSwitch: true,
     },
     include: ["src"],
-    references: [{ path: "./tsconfig.node.json" }]
+    references: [{ path: "./tsconfig.node.json" }],
   };
 }
 
@@ -963,19 +1065,36 @@ export function useData<T>(initialData: T[] = []) {
 }`;
 }
 
-function generateREADME(appTitle: string, prdContent: any, features: any[], epics: any[]) {
+function generateREADME(
+  appTitle: string,
+  prdContent: any,
+  features: any[],
+  epics: any[]
+) {
   return `# ${appTitle}
 
 🚀 **Complete React Application - Generated by Beanstalk AI**
 
 ## Overview
-${prdContent.overview || 'Modern web application built from your product requirements.'}
+${
+  prdContent.overview ||
+  "Modern web application built from your product requirements."
+}
 
 ## Features
-${features.map((feature: any) => `- **${feature.title}**: ${feature.description || 'Feature implementation'}`).join('\n')}
+${features
+  .map(
+    (feature: any) =>
+      `- **${feature.title}**: ${
+        feature.description || "Feature implementation"
+      }`
+  )
+  .join("\n")}
 
 ## Epics Implemented
-${epics.map((epic: any) => `- **${epic.title}**: ${epic.description}`).join('\n')}
+${epics
+  .map((epic: any) => `- **${epic.title}**: ${epic.description}`)
+  .join("\n")}
 
 ## Quick Start
 

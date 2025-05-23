@@ -1,5 +1,5 @@
-import { readFileSync } from "fs";
 import { fileTypeFromBuffer } from "file-type";
+import { readFileSync } from "fs";
 
 export interface ParsedFile {
   content: string;
@@ -7,41 +7,58 @@ export interface ParsedFile {
   type: string;
 }
 
-export async function parseUploadedFile(
-  filepath: string,
-  originalname: string
-): Promise<ParsedFile> {
+export async function parseUploadedFile({
+  path,
+  mimeType,
+  originalName,
+}: {
+  path: string;
+  mimeType: string;
+  originalName: string;
+}): Promise<ParsedFile> {
   try {
-    const buffer = readFileSync(filepath);
+    const buffer = readFileSync(path);
     const fileType = await fileTypeFromBuffer(buffer);
-    
+
     let content: string;
-    
+
     // Handle different file types
-    if (originalname.toLowerCase().endsWith('.txt') || fileType?.mime === 'text/plain') {
-      content = buffer.toString('utf-8');
-    } else if (originalname.toLowerCase().endsWith('.pdf') || fileType?.mime === 'application/pdf') {
+    console.log("originalName", originalName);
+    console.log("filetype mime", mimeType);
+    if (
+      originalName.toLowerCase().endsWith(".txt") ||
+      mimeType === "text/plain"
+    ) {
+      content = buffer.toString("utf-8");
+    } else if (
+      originalName.toLowerCase().endsWith(".pdf") ||
+      mimeType === "application/pdf"
+    ) {
       // For PDF parsing, we'll use a simple text extraction
       // In a real implementation, you'd use a library like pdf-parse
       content = await parsePDF(buffer);
-    } else if (originalname.toLowerCase().endsWith('.docx') || fileType?.mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    } else if (
+      originalName.toLowerCase().endsWith(".docx") ||
+      mimeType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
       // For DOCX parsing, you'd use a library like mammoth
       content = await parseDOCX(buffer);
     } else {
-      throw new Error(`Unsupported file type: ${fileType?.mime || 'unknown'}`);
+      throw new Error(`Unsupported file type: ${mimeType || "unknown"}`);
     }
 
     if (!content.trim()) {
-      throw new Error('File appears to be empty or unreadable');
+      throw new Error("File appears to be empty or unreadable");
     }
 
     return {
       content: content.trim(),
-      filename: originalname,
-      type: fileType?.mime || 'text/plain',
+      filename: originalName,
+      type: mimeType || "text/plain",
     };
   } catch (error) {
-    console.error('File parsing error:', error);
+    console.error("File parsing error:", error);
     throw new Error(`Failed to parse file: ${(error as Error).message}`);
   }
 }
@@ -49,20 +66,22 @@ export async function parseUploadedFile(
 async function parsePDF(buffer: Buffer): Promise<string> {
   // Simple PDF text extraction - in production, use pdf-parse or similar
   // For now, we'll return a placeholder that indicates PDF parsing
-  const text = buffer.toString('utf-8');
-  
+  const text = buffer.toString("utf-8");
+
   // Very basic PDF text extraction (this won't work for real PDFs)
   // In production, implement proper PDF parsing
-  if (text.includes('%PDF')) {
-    throw new Error('PDF parsing requires additional setup. Please use TXT files for now.');
+  if (text.includes("%PDF")) {
+    throw new Error(
+      "PDF parsing requires additional setup. Please use TXT files for now."
+    );
   }
-  
+
   return text;
 }
 
 async function parseDOCX(buffer: Buffer): Promise<string> {
   try {
-    const mammoth = await import('mammoth');
+    const mammoth = await import("mammoth");
     const result = await mammoth.extractRawText({ buffer });
     return result.value;
   } catch (error) {
@@ -72,16 +91,16 @@ async function parseDOCX(buffer: Buffer): Promise<string> {
 
 export function validateFileType(mimetype: string, filename: string): boolean {
   const allowedTypes = [
-    'text/plain',
-    'application/pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    "text/plain",
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
-  
-  const allowedExtensions = ['.txt', '.pdf', '.docx'];
-  const hasValidExtension = allowedExtensions.some(ext => 
+
+  const allowedExtensions = [".txt", ".pdf", ".docx"];
+  const hasValidExtension = allowedExtensions.some((ext) =>
     filename.toLowerCase().endsWith(ext)
   );
-  
+
   return allowedTypes.includes(mimetype) || hasValidExtension;
 }
 
