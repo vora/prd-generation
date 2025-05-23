@@ -27,10 +27,12 @@ export default function FileUpload({ onPRDGenerated }: FileUploadProps) {
   });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.map(file => ({
-      ...file,
-      id: Math.random().toString(36).substr(2, 9),
-    }));
+    const newFiles = acceptedFiles.map(file => {
+      // Add id as a property without spreading the file
+      const fileWithId = file as UploadedFile;
+      fileWithId.id = Math.random().toString(36).substr(2, 9);
+      return fileWithId;
+    });
     
     setUploadedFiles(prev => [...prev, ...newFiles]);
     setError(null);
