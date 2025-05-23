@@ -23,18 +23,49 @@ export type Prd = typeof prds.$inferSelect;
 // PRD Content Structure
 export const prdContentSchema = z.object({
   overview: z.string(),
-  goals: z.array(z.string()),
+  goals: z.array(z.object({
+    objective: z.string(),
+    metric: z.string(),
+    target: z.string()
+  })),
   features: z.array(z.object({
     name: z.string(),
     description: z.string(),
+    priority: z.string(),
+    userStory: z.string()
   })),
-  technicalRequirements: z.array(z.string()),
+  technicalRequirements: z.array(z.object({
+    category: z.string(),
+    requirement: z.string(),
+    rationale: z.string()
+  })),
+  userWorkflows: z.array(z.object({
+    workflow: z.string(),
+    steps: z.array(z.string()),
+    painPoints: z.array(z.string())
+  })),
+  acceptanceCriteria: z.array(z.object({
+    feature: z.string(),
+    criteria: z.array(z.string())
+  })),
+  nonFunctionalRequirements: z.array(z.object({
+    type: z.string(),
+    requirement: z.string(),
+    standard: z.string()
+  })),
+  futureEnhancements: z.array(z.object({
+    name: z.string(),
+    description: z.string(),
+    businessValue: z.string(),
+    timeframe: z.string()
+  })),
   userPersonas: z.array(z.object({
     name: z.string(),
     description: z.string(),
     painPoints: z.array(z.string()),
-  })).optional(),
-  acceptanceCriteria: z.array(z.string()).optional(),
+    goals: z.array(z.string()),
+    behaviors: z.array(z.string())
+  })).optional()
 });
 
 export type PrdContent = z.infer<typeof prdContentSchema>;
