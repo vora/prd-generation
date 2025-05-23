@@ -101,18 +101,48 @@ export default function PRDView() {
                   Generate a fully functional React application from your {prd.title} epics and user stories
                 </p>
                 
-                <button 
-                  onClick={() => {
-                    fetch(`/api/prds/${prd.id}/generate-app`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({})
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                      if (data.success) {
-                        // Create downloadable content
-                        const allFiles = data.appFiles.allFiles;
+                <div className="flex gap-4 mb-6">
+                  <button 
+                    onClick={() => {
+                      setGeneratedApp(null);
+                      setShowPreview(false);
+                      fetch(`/api/prds/${prd.id}/generate-app`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({})
+                      })
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data.success) {
+                          setGeneratedApp(data);
+                          setShowPreview(true);
+                          alert(`🎉 SUCCESS! Built "${data.appName}" application!\n\nClick "Preview Your App" to see it in action!`);
+                        } else {
+                          alert(`Error: ${data.error || 'Failed to generate application'}`);
+                        }
+                      })
+                      .catch(() => {
+                        alert('Failed to build application');
+                      });
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors"
+                  >
+                    🚀 Build Complete App
+                  </button>
+
+                  {generatedApp && (
+                    <button 
+                      onClick={() => setShowPreview(!showPreview)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors"
+                    >
+                      {showPreview ? '📋 Back to PRD' : '👀 Preview Your App'}
+                    </button>
+                  )}
+
+                  {generatedApp && (
+                    <button 
+                      onClick={() => {
+                        const allFiles = generatedApp.appFiles.allFiles;
                         const zipContent = allFiles.map(file => 
                           `=== ${file.filename} ===\n${file.content}\n`
                         ).join('\n\n');
@@ -121,25 +151,20 @@ export default function PRDView() {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `${data.appName.toLowerCase().replace(/\s+/g, '-')}-complete-app.txt`;
+                        a.download = `${generatedApp.appName.toLowerCase().replace(/\s+/g, '-')}-complete-app.txt`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
                         
-                        alert(`🎉 SUCCESS! Built "${data.appName}" application!\n\n📦 Generated ${data.filesGenerated} files:\n✓ ${data.appFiles.pages.length} pages\n✓ ${data.appFiles.components.length} components\n✓ Package.json & config files\n✓ Complete README\n\nReady to run: npm install && npm run dev`);
-                      } else {
-                        alert(`Error: ${data.error || 'Failed to generate application'}`);
-                      }
-                    })
-                    .catch(() => {
-                      alert('Failed to build application');
-                    });
-                  }}
-                  className="mb-6 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors"
-                >
-                  🚀 Build Complete App
-                </button>
+                        alert(`📦 Downloaded ${generatedApp.filesGenerated} files for your development team!`);
+                      }}
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-lg font-medium transition-colors"
+                    >
+                      📦 Download Code
+                    </button>
+                  )}
+                </div>
                 
                 <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg p-6 border">
                   <h4 className="text-xl font-bold mb-4">🏗️ What You'll Get</h4>
