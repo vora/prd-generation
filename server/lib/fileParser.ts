@@ -61,16 +61,13 @@ async function parsePDF(buffer: Buffer): Promise<string> {
 }
 
 async function parseDOCX(buffer: Buffer): Promise<string> {
-  // Simple DOCX text extraction - in production, use mammoth or similar
-  // For now, we'll return a placeholder that indicates DOCX parsing
-  const text = buffer.toString('utf-8');
-  
-  // Very basic DOCX detection
-  if (text.includes('PK') || text.includes('word/')) {
-    throw new Error('DOCX parsing requires additional setup. Please use TXT files for now.');
+  try {
+    const mammoth = await import('mammoth');
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value;
+  } catch (error) {
+    throw new Error("Failed to parse DOCX file: " + (error as Error).message);
   }
-  
-  return text;
 }
 
 export function validateFileType(mimetype: string, filename: string): boolean {
