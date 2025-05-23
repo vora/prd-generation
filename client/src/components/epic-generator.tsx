@@ -52,7 +52,7 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
 
   // Query for existing epics
   const { data: epicsData = [], isLoading: isLoadingEpics } = useQuery({
-    queryKey: ['/api/epics', prdId],
+    queryKey: [`/api/prds/${prdId}/epics`],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/prds/${prdId}/epics`, undefined);
       return response.json();
@@ -93,7 +93,9 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
         title: "User story added successfully!",
         description: "New user story has been generated and added to the epic",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
+      // Invalidate and refetch the epics query to force refresh
+      queryClient.invalidateQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
+      queryClient.refetchQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
       setIsAddStoryDialogOpen(false);
       setStoryPrompt("");
       setSelectedEpicId("");
