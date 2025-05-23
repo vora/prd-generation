@@ -25,7 +25,7 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
 
   // Fetch existing epics
   const { data: epicsData, isLoading } = useQuery({
-    queryKey: ['/api/prds', prdId, 'epics'],
+    queryKey: ['/api/epics', prdId],
     queryFn: async () => {
       const response = await fetch(`/api/prds/${prdId}/epics`);
       if (!response.ok) throw new Error('Failed to fetch epics');
