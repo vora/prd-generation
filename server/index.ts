@@ -1,3 +1,6 @@
+/* eslint-disable import/order */
+import "./config";
+/* eslint-enable import/order */
 import express, { NextFunction, type Request, Response } from "express";
 import { registerRoutes } from "./routes";
 import { log, serveStatic, setupVite } from "./vite";
