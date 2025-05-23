@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePRDFromConversation, generateEpicsFromPRD } from "./lib/openai";
-import { generateFrontendCode } from "./lib/codeGenerator";
+import { generateCompleteApp } from "./lib/realCodeGenerator";
 import OpenAI from "openai";
 import { parseUploadedFile, validateFileType, validateFileSize } from "./lib/fileParser";
 import { insertPrdSchema, prdContentSchema } from "@shared/schema";
@@ -417,39 +417,22 @@ Epic Description: ${epic.content?.description || 'No description available'}`
         return res.status(404).json({ error: "PRD not found" });
       }
 
-      // For now, create a simple mock response until we fix the full generator
-      console.log(`Generating frontend code for PRD: ${prd.title}`);
-      
-      const mockResult = {
-        components: [
-          {
-            name: "BookOfBusinessList",
-            filename: "book-of-business-list.tsx",
-            code: "// React component for managing book of business\nimport React from 'react';\n\nexport default function BookOfBusinessList() {\n  return (\n    <div className=\"p-6\">\n      <h1 className=\"text-2xl font-bold mb-4\">Book of Business</h1>\n      <div className=\"grid gap-4\">\n        {/* Client list implementation */}\n      </div>\n    </div>\n  );\n}",
-            type: "component",
-            dependencies: ["react"]
-          },
-          {
-            name: "ClientFilter",
-            filename: "client-filter.tsx", 
-            code: "// React component for filtering clients\nimport React from 'react';\n\nexport default function ClientFilter() {\n  return (\n    <div className=\"mb-4\">\n      <input \n        type=\"text\" \n        placeholder=\"Filter clients...\"\n        className=\"border p-2 rounded\"\n      />\n    </div>\n  );\n}",
-            type: "component",
-            dependencies: ["react"]
-          }
-        ],
-        packageJson: {
-          name: prd.title.toLowerCase().replace(/\s+/g, '-'),
-          dependencies: { "react": "^18.0.0", "typescript": "^5.0.0" }
-        },
-        readme: `# ${prd.title}\n\nGenerated React application\n\n## Setup\nnpm install\nnpm start`,
-        processingTime: 1500
-      };
+      // Check if PRD has epics generated
+      if (!prd.content || !(prd.content as any).epics) {
+        return res.status(400).json({ error: "Please generate epics first before generating code" });
+      }
+
+      const epics = (prd.content as any).epics;
+      console.log(`Generating complete application for PRD: ${prd.title}`);
+      console.log(`Processing ${epics.length} epics with ${epics.reduce((acc: number, epic: any) => acc + (epic.userStories?.length || 0), 0)} user stories`);
+
+      const result = await generateCompleteApp(epics, prd.title);
 
       res.json({
         success: true,
         prdId,
         prdTitle: prd.title,
-        ...mockResult
+        ...result
       });
 
     } catch (error: any) {

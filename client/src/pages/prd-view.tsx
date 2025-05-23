@@ -95,149 +95,92 @@ export default function PRDView() {
               <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-5 w-5 bg-blue-500 rounded"></div>
-                  <h3 className="text-lg font-semibold">Generated Application Preview</h3>
+                  <h3 className="text-lg font-semibold">Complete Application Generator</h3>
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Here's what your {prd.title} application would look like for business users
+                  Generate a fully functional React application from your {prd.title} epics and user stories
                 </p>
                 
-                {/* Generated App Preview */}
-                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
-                  <div className="mb-4">
-                    <h4 className="font-bold text-xl text-blue-600 mb-2">📱 {prd.title}</h4>
-                    <p className="text-sm text-gray-600">Generated from your epics and user stories</p>
-                  </div>
-                  
-                  {/* Navigation */}
-                  <div className="bg-blue-600 text-white p-3 rounded mb-4">
-                    <div className="flex gap-4">
-                      <button className="px-3 py-1 bg-blue-500 rounded">📊 Dashboard</button>
-                      <button className="px-3 py-1 hover:bg-blue-500 rounded">📋 Book of Business</button>
-                      <button className="px-3 py-1 hover:bg-blue-500 rounded">🔍 Client Search</button>
-                      <button className="px-3 py-1 hover:bg-blue-500 rounded">📄 Policies</button>
-                      <button className="px-3 py-1 hover:bg-blue-500 rounded">⚙️ Settings</button>
-                    </div>
-                  </div>
-                  
-                  {/* Main Content Area */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    {/* Book of Business */}
-                    <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-4 rounded border">
-                      <h5 className="font-semibold mb-3">📋 Book of Business Management</h5>
-                      
-                      {/* Search and Filter */}
-                      <div className="mb-3 flex gap-2">
-                        <input 
-                          type="text" 
-                          placeholder="Search clients..." 
-                          className="flex-1 p-2 border rounded text-sm"
-                          readOnly
-                        />
-                        <select className="p-2 border rounded text-sm" disabled>
-                          <option>All Status</option>
-                          <option>Active</option>
-                          <option>Inactive</option>
-                        </select>
-                        <button className="px-3 py-2 bg-blue-500 text-white rounded text-sm">🔍 Filter</button>
-                      </div>
-                      
-                      {/* Client List */}
-                      <div className="space-y-2">
-                        <div className="p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">Acme Corporation</p>
-                              <p className="text-sm text-gray-600">Health Insurance • Active</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-green-600">$12,500/mo</p>
-                              <p className="text-xs text-gray-500">50 employees</p>
-                            </div>
-                          </div>
-                        </div>
+                <button 
+                  onClick={() => {
+                    fetch(`/api/prds/${prd.id}/generate-code`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                      if (data.success) {
+                        // Create downloadable content with all files
+                        const allFiles = [
+                          ...data.components,
+                          ...data.pages,
+                          ...data.hooks,
+                          ...data.utils,
+                          ...data.config,
+                          { path: 'package.json', content: JSON.stringify(data.packageJson, null, 2) },
+                          { path: 'README.md', content: data.readme },
+                          { path: 'DEPLOY.md', content: data.deployInstructions }
+                        ];
                         
-                        <div className="p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">TechStart Inc</p>
-                              <p className="text-sm text-gray-600">Health + Dental • Active</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-green-600">$8,750/mo</p>
-                              <p className="text-xs text-gray-500">25 employees</p>
-                            </div>
-                          </div>
-                        </div>
+                        const zipContent = allFiles.map(file => 
+                          `=== ${file.path} ===\n${file.content}\n`
+                        ).join('\n\n');
                         
-                        <div className="p-3 border rounded hover:bg-gray-50 dark:hover:bg-gray-700">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">Global Ventures LLC</p>
-                              <p className="text-sm text-gray-600">Comprehensive Package • Under Review</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-semibold text-yellow-600">$22,100/mo</p>
-                              <p className="text-xs text-gray-500">120 employees</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-3 flex gap-2">
-                        <button className="px-4 py-2 bg-green-500 text-white rounded text-sm">+ Add Client</button>
-                        <button className="px-4 py-2 bg-gray-500 text-white rounded text-sm">📊 Export Data</button>
-                      </div>
+                        const blob = new Blob([zipContent], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${data.appName.toLowerCase().replace(/\s+/g, '-')}-complete-app.txt`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        alert(`🎉 SUCCESS! Generated complete application "${data.appName}"!\n\n📦 ${allFiles.length} files created including:\n✓ ${data.pages.length} full-featured pages\n✓ ${data.components.length} reusable components\n✓ ${data.hooks.length} custom hooks\n✓ Complete package.json & config\n✓ Deployment instructions\n\nYour app is downloading now!`);
+                      } else {
+                        alert('Error generating application');
+                      }
+                    })
+                    .catch(() => {
+                      alert('Failed to generate application');
+                    });
+                  }}
+                  className="mb-6 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-lg font-medium text-lg transition-colors flex items-center gap-2"
+                >
+                  🚀 Generate Complete App
+                </button>
+                
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg p-6 border">
+                  <h4 className="text-xl font-bold mb-4">🏗️ What You'll Get</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h5 className="font-semibold mb-2 text-green-700 dark:text-green-300">📄 Complete Pages</h5>
+                      <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                        <li>✓ Book of Business management</li>
+                        <li>✓ Client search and filtering</li>  
+                        <li>✓ Policy management interface</li>
+                        <li>✓ Dashboard with real metrics</li>
+                        <li>✓ User authentication flows</li>
+                      </ul>
                     </div>
-                    
-                    {/* Sidebar */}
-                    <div className="space-y-4">
-                      {/* Quick Stats */}
-                      <div className="bg-white dark:bg-gray-800 p-4 rounded border">
-                        <h6 className="font-semibold mb-2">📈 Quick Stats</h6>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Total Clients:</span>
-                            <span className="font-semibold">47</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Monthly Revenue:</span>
-                            <span className="font-semibold text-green-600">$186,750</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Active Policies:</span>
-                            <span className="font-semibold">89</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Renewals Due:</span>
-                            <span className="font-semibold text-orange-600">12</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Recent Activity */}
-                      <div className="bg-white dark:bg-gray-800 p-4 rounded border">
-                        <h6 className="font-semibold mb-2">🔔 Recent Activity</h6>
-                        <div className="space-y-2 text-sm">
-                          <div className="p-2 bg-blue-50 dark:bg-blue-900 rounded">
-                            <p className="font-medium">New Quote Request</p>
-                            <p className="text-xs text-gray-600">TechStart Inc - 2 hours ago</p>
-                          </div>
-                          <div className="p-2 bg-green-50 dark:bg-green-900 rounded">
-                            <p className="font-medium">Policy Renewed</p>
-                            <p className="text-xs text-gray-600">Acme Corp - 1 day ago</p>
-                          </div>
-                          <div className="p-2 bg-yellow-50 dark:bg-yellow-900 rounded">
-                            <p className="font-medium">Payment Overdue</p>
-                            <p className="text-xs text-gray-600">Global Ventures - 3 days ago</p>
-                          </div>
-                        </div>
-                      </div>
+                    <div>
+                      <h5 className="font-semibold mb-2 text-blue-700 dark:text-blue-300">⚙️ Technical Features</h5>
+                      <ul className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                        <li>✓ TypeScript + React 18</li>
+                        <li>✓ Responsive Tailwind CSS</li>
+                        <li>✓ Real state management</li>
+                        <li>✓ API integration ready</li>
+                        <li>✓ Production deployment guide</li>
+                      </ul>
                     </div>
                   </div>
                   
-                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900 rounded">
-                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                      ✨ This preview shows how your epics translate into a real working application that business users can navigate and use effectively.
+                  <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded border">
+                    <p className="text-sm">
+                      <strong>🎯 Perfect for:</strong> Taking directly to your development team, deploying immediately, 
+                      or using as the foundation for your production application. Every component is built from 
+                      your actual user stories with working functionality.
                     </p>
                   </div>
                 </div>
