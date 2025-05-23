@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 4%; /* #0A0A0A - Deep black background */
-  --foreground: 0 0% 98%; /* #FAFAFA - Clean white text */
-  --muted: 0 0% 12%; /* #1F1F1F - Dark muted background */
-  --muted-foreground: 0 0% 65%; /* #A6A6A6 - Muted gray text */
-  --popover: 0 0% 6%; /* #0F0F0F - Slightly lighter black */
-  --popover-foreground: 0 0% 98%; /* #FAFAFA */
-  --card: 0 0% 8%; /* #141414 - Card background */
-  --card-foreground: 0 0% 98%; /* #FAFAFA */
-  --border: 0 0% 15%; /* #262626 - Subtle borders */
-  --input: 0 0% 12%; /* #1F1F1F - Input background */
+  --background: 0 0% 100%; /* #FFFFFF - Clean white background */
+  --foreground: 222 84% 4.9%; /* #020817 - Dark text */
+  --muted: 210 40% 98%; /* #F8FAFC - Light gray background */
+  --muted-foreground: 215 16% 46.9%; /* #64748B - Muted gray text */
+  --popover: 0 0% 100%; /* #FFFFFF */
+  --popover-foreground: 222 84% 4.9%; /* #020817 */
+  --card: 0 0% 100%; /* #FFFFFF - Card background */
+  --card-foreground: 222 84% 4.9%; /* #020817 */
+  --border: 214 32% 91%; /* #E2E8F0 - Light borders */
+  --input: 214 32% 91%; /* #E2E8F0 - Input background */
   --primary: 210 100% 50%; /* #0080FF - Bright blue accent */
   --primary-foreground: 0 0% 100%; /* #FFFFFF */
-  --secondary: 0 0% 12%; /* #1F1F1F */
-  --secondary-foreground: 0 0% 98%; /* #FAFAFA */
-  --accent: 120 100% 50%; /* #00FF00 - Bright green accent */
-  --accent-foreground: 0 0% 4%; /* #0A0A0A */
+  --secondary: 210 40% 98%; /* #F8FAFC */
+  --secondary-foreground: 222 84% 4.9%; /* #020817 */
+  --accent: 120 100% 25%; /* #008000 - Professional green accent */
+  --accent-foreground: 0 0% 100%; /* #FFFFFF */
   --destructive: 0 84% 60%; /* #EF4444 */
   --destructive-foreground: 0 0% 98%; /* #FAFAFA */
   --ring: 210 100% 50%; /* #0080FF */
   --radius: 0.75rem;
   --chart-1: 210 100% 50%; /* #0080FF */
-  --chart-2: 120 100% 50%; /* #00FF00 */
+  --chart-2: 120 100% 25%; /* #008000 */
   --chart-3: 45 93% 47%; /* #F59E0B */
   --chart-4: 262 83% 58%; /* #8B5CF6 */
   --chart-5: 0 84% 60%; /* #EF4444 */
-  --sidebar-background: 0 0% 6%; /* #0F0F0F */
-  --sidebar-foreground: 0 0% 98%; /* #FAFAFA */
+  --sidebar-background: 0 0% 100%; /* #FFFFFF */
+  --sidebar-foreground: 222 84% 4.9%; /* #020817 */
   --sidebar-primary: 210 100% 50%; /* #0080FF */
   --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
-  --sidebar-accent: 0 0% 12%; /* #1F1F1F */
-  --sidebar-accent-foreground: 0 0% 98%; /* #FAFAFA */
-  --sidebar-border: 0 0% 15%; /* #262626 */
+  --sidebar-accent: 210 40% 98%; /* #F8FAFC */
+  --sidebar-accent-foreground: 222 84% 4.9%; /* #020817 */
+  --sidebar-border: 214 32% 91%; /* #E2E8F0 */
   --sidebar-ring: 210 100% 50%; /* #0080FF */
 }
 
@@ -81,8 +81,8 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
     font-family: 'Barlow', sans-serif;
-    background: radial-gradient(ellipse at top, rgba(0, 128, 255, 0.05), transparent 60%),
-                linear-gradient(180deg, #0A0A0A 0%, #000000 100%);
+    background: radial-gradient(ellipse at top, rgba(0, 128, 255, 0.03), transparent 60%),
+                linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
     min-height: 100vh;
   }
 }

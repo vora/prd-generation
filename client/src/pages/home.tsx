@@ -26,13 +26,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                  <path fillRule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h1 className="text-xl font-bold text-foreground tracking-tight">ConversationPRD</h1>
+              <img 
+                src="/attached_assets/ChatGPT Image May 22, 2025, 08_43_40 PM.png" 
+                alt="Beanstalk Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <h1 className="text-xl font-bold text-foreground tracking-tight">Beanstalk</h1>
             </div>
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#" className="text-muted-foreground hover:text-foreground font-medium transition-colors">Dashboard</a>
@@ -94,7 +93,7 @@ export default function Home() {
             <Settings className="w-4 h-4 mr-2" />
             Enterprise Features
           </div>
-          <h3 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 tracking-tight">Why Choose ConversationPRD?</h3>
+          <h3 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 tracking-tight">Why Choose Beanstalk?</h3>
           <p className="text-xl text-muted-foreground mb-16 max-w-3xl mx-auto leading-relaxed">
             Streamline your product development process with AI-powered insights and professional documentation that scales with your team.
           </p>
@@ -139,16 +138,15 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 001 1h6a1 1 0 001-1V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <h4 className="text-2xl font-bold text-foreground">ConversationPRD</h4>
+                <img 
+                  src="/attached_assets/ChatGPT Image May 22, 2025, 08_43_40 PM.png" 
+                  alt="Beanstalk Logo" 
+                  className="w-10 h-10 object-contain"
+                />
+                <h4 className="text-2xl font-bold text-foreground">Beanstalk</h4>
               </div>
               <p className="text-muted-foreground mb-6 leading-relaxed max-w-md">
-                Transform conversations into professional product requirements documents with AI-powered analysis that scales with your enterprise needs.
+                Transform conversations into professional product requirements documents with AI-powered analysis that helps your ideas grow.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
@@ -191,7 +189,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-border mt-12 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2025 ConversationPRD. All rights reserved.</p>
+            <p>&copy; 2025 Beanstalk. All rights reserved.</p>
           </div>
         </div>
       </footer>
