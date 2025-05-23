@@ -130,7 +130,7 @@ export default function ConversationRecorder({ onConversationComplete }: Convers
     setConversationPhase(newPhase);
 
     // Generate AI-powered prompt based on actual conversation content
-    if (wordCount > 20) { // Only generate when we have enough context
+    if (wordCount > 20 && !isRecording) { // Only generate when we have enough context and not actively recording
       await generateContextualPrompt(currentTranscript, newPhase);
     }
   };
@@ -153,7 +153,9 @@ export default function ConversationRecorder({ onConversationComplete }: Convers
 
       if (response.ok) {
         const data = await response.json();
-        setAiPrompt(data.prompt);
+        // Clean any emojis from the response
+        const cleanPrompt = data.prompt.replace(/[\\u{1F600}-\\u{1F64F}]|[\u{1F300}-\\u{1F5FF}]|[\u{1F680}-\\u{1F6FF}]|[\\u{1F1E0}-\\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\\u{2700}-\\u{27BF}]/gu, '').trim();
+        setAiPrompt(cleanPrompt);
       } else {
         // Fallback to static prompts if API fails
         const fallbackPrompts = conversationPrompts[phase as keyof typeof conversationPrompts];

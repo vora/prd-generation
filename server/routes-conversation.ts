@@ -48,7 +48,7 @@ DESIGN & BRANDING FOCUS AREAS:
 
 Use a warm, conversational, and slightly witty tone. Ask questions that reveal the human story and emotional core of the product.
 
-Format: Just return the question as a clear, direct statement without any emojis or special formatting.`;
+IMPORTANT: Return ONLY the question text. No emojis, no special characters, no formatting. Just a clean, professional question.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
