@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, json, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, json, jsonb, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -97,3 +97,46 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Epic schema
+export const epics = pgTable("epics", {
+  id: serial("id").primaryKey(),
+  prdId: integer("prd_id").references(() => prds.id).notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  priority: text("priority").notNull().default("medium"), // high, medium, low
+  estimatedEffort: text("estimated_effort"), // e.g., "2-3 weeks"
+  userStories: jsonb("user_stories").$type<UserStory[]>().notNull().default([]),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertEpicSchema = createInsertSchema(epics).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertEpic = z.infer<typeof insertEpicSchema>;
+export type EpicRecord = typeof epics.$inferSelect;
+
+// User Story schema (embedded in epics)
+export const userStorySchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string(),
+  acceptanceCriteria: z.array(z.string()),
+  priority: z.enum(["high", "medium", "low"]),
+  estimatedPoints: z.number().optional(),
+  status: z.enum(["todo", "in-progress", "done"]).default("todo"),
+});
+
+export type UserStory = z.infer<typeof userStorySchema>;
+
+// Epic with generated content schema
+export const epicContentSchema = z.object({
+  goals: z.array(z.string()),
+  userStories: z.array(userStorySchema),
+  dependencies: z.array(z.string()).optional(),
+  risks: z.array(z.string()).optional(),
+});
+
+export type EpicContent = z.infer<typeof epicContentSchema>;

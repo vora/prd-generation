@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Loader2, Zap, ChevronDown, ChevronUp, Trash2, Users, Target, CheckSquare } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Epic, UserStory, EpicRecord } from "@shared/schema";
+import type { UserStory, EpicRecord } from "@shared/schema";
 
 interface EpicGeneratorProps {
   prdId: number;
