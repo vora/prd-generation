@@ -27,7 +27,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
               <img 
-                src="/attached_assets/ChatGPT Image May 22, 2025, 08_43_40 PM.png" 
+                src="/beanstalk-logo.png" 
                 alt="Beanstalk Logo" 
                 className="w-8 h-8 object-contain"
               />
@@ -139,7 +139,7 @@ export default function Home() {
             <div className="col-span-2">
               <div className="flex items-center space-x-3 mb-6">
                 <img 
-                  src="/attached_assets/ChatGPT Image May 22, 2025, 08_43_40 PM.png" 
+                  src="/beanstalk-logo.png" 
                   alt="Beanstalk Logo" 
                   className="w-10 h-10 object-contain"
                 />
