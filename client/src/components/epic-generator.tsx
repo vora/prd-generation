@@ -4,7 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Target, Users, CheckCircle, ChevronDown, Trash2, MoreVertical, CheckSquare } from "lucide-react";
+import { Loader2, Sparkles, Target, Users, CheckCircle, ChevronDown, Trash2, MoreVertical, CheckSquare, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Collapsible,
@@ -27,6 +27,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface EpicGeneratorProps {
   prdId: number;
