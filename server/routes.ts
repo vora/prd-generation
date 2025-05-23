@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePRDFromConversation, generateEpicsFromPRD } from "./lib/openai";
+import { registerConversationRoutes } from "./routes-conversation";
 import OpenAI from "openai";
 import { parseUploadedFile, validateFileType, validateFileSize } from "./lib/fileParser";
 import { insertPrdSchema, prdContentSchema } from "@shared/schema";
@@ -19,6 +20,9 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register conversation analysis routes
+  registerConversationRoutes(app);
+  
   // Get all PRDs
   app.get("/api/prds", async (_req: Request, res: Response) => {
     try {
