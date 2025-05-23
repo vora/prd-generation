@@ -78,6 +78,12 @@ export default function PRDView() {
             >
               Epics & User Stories
             </Button>
+            <Button
+              variant={activeTab === "code" ? "default" : "outline"}
+              onClick={() => setActiveTab("code")}
+            >
+              Frontend Code
+            </Button>
           </div>
 
           {activeTab === "prd" && <PRDPreview prd={prd} />}
