@@ -15,25 +15,29 @@ export async function parseUploadedFile(
     const buffer = readFileSync(filepath);
     const fileType = await fileTypeFromBuffer(buffer);
     
+    console.log(`📁 Processing file: ${originalname}, detected type: ${fileType?.mime || 'none'}`);
+    
     let content: string;
     
-    // Handle different file types - check filename first, then MIME type
+    // Handle different file types - prioritize filename extension
     const fileName = originalname.toLowerCase();
     
-    if (fileName.endsWith('.txt') || fileType?.mime === 'text/plain' || (!fileType && fileName.includes('.'))) {
+    if (fileName.endsWith('.txt')) {
       content = buffer.toString('utf-8');
-    } else if (fileName.endsWith('.pdf') || fileType?.mime === 'application/pdf') {
+      console.log(`✅ Processed as text file`);
+    } else if (fileName.endsWith('.pdf')) {
       content = await parsePDF(buffer);
-    } else if (fileName.endsWith('.docx') || fileType?.mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+      console.log(`✅ Processed as PDF`);
+    } else if (fileName.endsWith('.docx')) {
       content = await parseDOCX(buffer);
-    } else if (fileName.endsWith('.doc') || fileType?.mime === 'application/msword') {
-      // Try to handle older Word docs as text
+      console.log(`✅ Processed as DOCX`);
+    } else if (fileName.endsWith('.doc')) {
       content = buffer.toString('utf-8');
-    } else if (!fileType || fileType.mime === 'application/octet-stream') {
-      // If file type detection fails, try treating as text
-      content = buffer.toString('utf-8');
+      console.log(`✅ Processed as DOC (text fallback)`);
     } else {
-      throw new Error(`Unsupported file type: ${fileType?.mime || 'unknown'}`);
+      // Default to text for any unrecognized file
+      content = buffer.toString('utf-8');
+      console.log(`✅ Processed as default text`);
     }
 
     if (!content.trim()) {
