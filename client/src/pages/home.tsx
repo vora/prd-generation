@@ -23,22 +23,18 @@ export default function Home() {
   };
 
   const handleConversationComplete = (transcript: string) => {
-    // Create a blob with the transcript and trigger file upload processing
-    const blob = new Blob([transcript], { type: 'text/plain' });
-    const file = new File([blob], `conversation-${Date.now()}.txt`, { type: 'text/plain' });
-    
-    // Trigger the same PRD generation process as file upload
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    fetch('/api/prds/generate', {
+    // Use the dedicated conversation-to-PRD endpoint
+    fetch('/api/prds/generate-from-conversation', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ transcript })
     })
     .then(response => response.json())
     .then(data => {
       if (data.success) {
         handlePRDGenerated(data.prd);
+      } else {
+        console.error('Failed to generate PRD:', data.error);
       }
     })
     .catch(error => {
