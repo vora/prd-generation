@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Brain, Rocket, Settings } from "lucide-react";
+import { Brain, Rocket, Settings, FileText, Users, Code, Figma, Zap, ArrowRight } from "lucide-react";
 import FileUpload from "@/components/file-upload";
 import PRDPreview from "@/components/prd-preview-new";
 import RecentPRDs from "@/components/recent-prds";
+import { Card, CardContent } from "@/components/ui/card";
 import { queryClient } from "@/lib/queryClient";
 import type { Prd } from "@shared/schema";
 
@@ -62,15 +63,47 @@ export default function Home() {
             AI-Powered PRD Generation
           </div>
           <h2 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 tracking-tight">
-            Transform Conversations into{" "}
+            From Conversation to{" "}
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Professional PRDs
+              Code
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Upload your conversation files and let AI generate comprehensive Product Requirements Documents in minutes, not hours. 
-            Powered by advanced natural language processing.
+            AI-powered, end-to-end product development platform that transforms stakeholder conversations 
+            into fully functional UI prototypes and frontend code. Bridge the gap between business intent and execution.
           </p>
+        </div>
+
+        {/* Core Features Preview */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <Card className="bg-white/60 backdrop-blur-sm border-border hover:bg-white/80 transition-all duration-300">
+            <CardContent className="p-6 text-center">
+              <FileText className="w-10 h-10 text-blue-600 mx-auto mb-4" />
+              <h3 className="font-bold text-foreground mb-2">Conversation-to-PRD</h3>
+              <p className="text-sm text-muted-foreground">Transform meetings into structured requirements</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/60 backdrop-blur-sm border-border hover:bg-white/80 transition-all duration-300">
+            <CardContent className="p-6 text-center">
+              <Users className="w-10 h-10 text-purple-600 mx-auto mb-4" />
+              <h3 className="font-bold text-foreground mb-2">User Story Generation</h3>
+              <p className="text-sm text-muted-foreground">Automated epics with acceptance criteria</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/60 backdrop-blur-sm border-border hover:bg-white/80 transition-all duration-300">
+            <CardContent className="p-6 text-center">
+              <Figma className="w-10 h-10 text-green-600 mx-auto mb-4" />
+              <h3 className="font-bold text-foreground mb-2">UI Specification</h3>
+              <p className="text-sm text-muted-foreground">Figma-ready designs with navigation logic</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/60 backdrop-blur-sm border-border hover:bg-white/80 transition-all duration-300">
+            <CardContent className="p-6 text-center">
+              <Code className="w-10 h-10 text-orange-600 mx-auto mb-4" />
+              <h3 className="font-bold text-foreground mb-2">Frontend Code Export</h3>
+              <p className="text-sm text-muted-foreground">React, React Native, and web frameworks</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Grid */}
@@ -91,39 +124,39 @@ export default function Home() {
             <Settings className="w-4 h-4 mr-2" />
             Enterprise Features
           </div>
-          <h3 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 tracking-tight">Why Choose Beanstalk?</h3>
+          <h3 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 tracking-tight">The Problem Beanstalk Solves</h3>
           <p className="text-xl text-muted-foreground mb-16 max-w-3xl mx-auto leading-relaxed">
-            Streamline your product development process with AI-powered insights and professional documentation that scales with your team.
+            Building digital products at scale is slower and messier than it should be. Despite modern tooling, most organizations struggle with speed, alignment, and efficiency.
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="group p-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl hover:bg-card/80 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/70 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/25 group-hover:shadow-primary/40 transition-all">
-                <Brain className="w-8 h-8 text-white" />
+            <div className="group p-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl hover:bg-card/80 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/10">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25 group-hover:shadow-blue-500/40 transition-all">
+                <Zap className="w-8 h-8 text-white" />
               </div>
-              <h4 className="text-2xl font-bold text-foreground mb-4">AI-Powered Analysis</h4>
+              <h4 className="text-2xl font-bold text-foreground mb-4">Speed to Market</h4>
               <p className="text-muted-foreground leading-relaxed">
-                Advanced natural language processing extracts key insights from unstructured conversations and interviews with enterprise-grade accuracy.
-              </p>
-            </div>
-            
-            <div className="group p-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl hover:bg-card/80 transition-all duration-300 hover:shadow-2xl hover:shadow-accent/10">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/70 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-accent/25 group-hover:shadow-accent/40 transition-all">
-                <Rocket className="w-8 h-8 text-black" />
-              </div>
-              <h4 className="text-2xl font-bold text-foreground mb-4">10x Faster</h4>
-              <p className="text-muted-foreground leading-relaxed">
-                Transform hours of manual work into minutes of automated processing while maintaining quality and accuracy that meets professional standards.
+                Move from ideas to testable prototypes in hours, not weeks. It takes weeks or months for ideas to become visual, testable, and build-ready.
               </p>
             </div>
             
             <div className="group p-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl hover:bg-card/80 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-500/25 group-hover:shadow-purple-500/40 transition-all">
-                <Settings className="w-8 h-8 text-white" />
+                <Users className="w-8 h-8 text-white" />
               </div>
-              <h4 className="text-2xl font-bold text-foreground mb-4">Professional Format</h4>
+              <h4 className="text-2xl font-bold text-foreground mb-4">Team Alignment</h4>
               <p className="text-muted-foreground leading-relaxed">
-                Industry-standard PRD templates with customizable sections that fit your team's workflow and requirements, ready for stakeholder review.
+                Bridge product, design, and engineering teams. Each team reinterprets the last team's work, leading to costly rework and scope creep.
+              </p>
+            </div>
+            
+            <div className="group p-8 bg-card/50 backdrop-blur-sm border border-border rounded-2xl hover:bg-card/80 transition-all duration-300 hover:shadow-2xl hover:shadow-green-500/10">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-all">
+                <ArrowRight className="w-8 h-8 text-white" />
+              </div>
+              <h4 className="text-2xl font-bold text-foreground mb-4">Efficient Collaboration</h4>
+              <p className="text-muted-foreground leading-relaxed">
+                Central source of truth from day one. Stakeholder feedback is scattered across meetings, notes, and emails without structure.
               </p>
             </div>
           </div>
@@ -142,7 +175,7 @@ export default function Home() {
                 <h4 className="text-2xl font-bold text-foreground">Beanstalk</h4>
               </div>
               <p className="text-muted-foreground mb-6 leading-relaxed max-w-md">
-                Transform conversations into professional product requirements documents with AI-powered analysis that helps your ideas grow.
+                End-to-end product development platform that transforms stakeholder conversations into fully functional UI prototypes and frontend code.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
