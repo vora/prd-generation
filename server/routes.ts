@@ -40,14 +40,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { generateEpicsFromPRD } = await import("./lib/openai");
-      const { epics, processingTime } = await generateEpicsFromPRD(prd.title, prd.content as any);
+      const result = await generateEpicsFromPRD(prd.content as any, prd.title);
 
       // Save epics to storage
       const epicRecord = await storage.createEpic({
         prdId,
-        title: `${prd.title} - Epics`,
-        content: epics,
-        processingTime,
+        title: result.title,
+        content: result.content,
+        processingTime: result.processingTime,
       });
 
       res.json(epicRecord);

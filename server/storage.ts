@@ -1,4 +1,21 @@
-import { prds, type Prd, type InsertPrd, type User, type InsertUser } from "@shared/schema";
+import { Prd, InsertPrd, User, InsertUser } from "@shared/schema";
+
+// Temporary Epic types for memory storage
+interface EpicRecord {
+  id: number;
+  prdId: number;
+  title: string;
+  content: any;
+  processingTime: number | null;
+  createdAt: Date;
+}
+
+interface InsertEpic {
+  prdId: number;
+  title: string;
+  content: any;
+  processingTime?: number | null;
+}
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -42,9 +59,12 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    for (const user of this.users.values()) {
+      if (user.username === username) {
+        return user;
+      }
+    }
+    return undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -59,9 +79,7 @@ export class MemStorage implements IStorage {
   }
 
   async getAllPrds(): Promise<Prd[]> {
-    return Array.from(this.prds.values()).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return Array.from(this.prds.values());
   }
 
   async createPrd(insertPrd: InsertPrd): Promise<Prd> {
@@ -69,7 +87,10 @@ export class MemStorage implements IStorage {
     const prd: Prd = {
       ...insertPrd,
       id,
-      createdAt: new Date(),
+      status: insertPrd.status || "draft",
+      processingTime: insertPrd.processingTime || null,
+      originalFileName: insertPrd.originalFileName || null,
+      createdAt: new Date()
     };
     this.prds.set(id, prd);
     return prd;
@@ -85,12 +106,6 @@ export class MemStorage implements IStorage {
   }
 
   async deletePrd(id: number): Promise<boolean> {
-    // Also delete associated epics
-    for (const [epicId, epic] of this.epics.entries()) {
-      if (epic.prdId === id) {
-        this.epics.delete(epicId);
-      }
-    }
     return this.prds.delete(id);
   }
 
@@ -107,7 +122,8 @@ export class MemStorage implements IStorage {
     const epic: EpicRecord = {
       ...insertEpic,
       id,
-      createdAt: new Date(),
+      processingTime: insertEpic.processingTime || null,
+      createdAt: new Date()
     };
     this.epics.set(id, epic);
     return epic;
