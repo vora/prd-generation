@@ -36,7 +36,7 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   // Generate epics mutation
   const generateEpicsMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/prds/${prdId}/epics/generate`, "POST", {});
+      const response = await apiRequest("POST", `/api/prds/${prdId}/epics/generate`, {});
       return response;
     },
     onSuccess: () => {
@@ -58,7 +58,7 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   // Delete epic mutation
   const deleteEpicMutation = useMutation({
     mutationFn: async (epicId: number) => {
-      return apiRequest(`/api/epics/${epicId}`, "DELETE", undefined);
+      return apiRequest("DELETE", `/api/epics/${epicId}`, undefined);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
