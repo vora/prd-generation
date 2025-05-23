@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generatePRDFromConversation, generateEpicsFromPRD } from "./lib/openai";
+import { generateFrontendCode } from "./lib/codeGenerator";
 import OpenAI from "openai";
 import { parseUploadedFile, validateFileType, validateFileSize } from "./lib/fileParser";
 import { insertPrdSchema, prdContentSchema } from "@shared/schema";
@@ -400,6 +401,46 @@ Epic Description: ${epic.content?.description || 'No description available'}`
     } catch (error) {
       console.error("Error adding user story:", error);
       res.status(500).json({ error: "Failed to add user story" });
+    }
+  });
+
+  // Generate frontend code from epics
+  app.post('/api/prds/:id/generate-code', async (req: Request, res: Response) => {
+    try {
+      const prdId = parseInt(req.params.id);
+      if (isNaN(prdId)) {
+        return res.status(400).json({ error: "Invalid PRD ID" });
+      }
+
+      const prd = await storage.getPrd(prdId);
+      if (!prd) {
+        return res.status(404).json({ error: "PRD not found" });
+      }
+
+      // Check if PRD has epics generated
+      if (!prd.content || !(prd.content as any).epics) {
+        return res.status(400).json({ error: "Please generate epics first before generating code" });
+      }
+
+      const epics = (prd.content as any).epics;
+      console.log(`Generating frontend code for PRD: ${prd.title}`);
+      console.log(`Found ${epics.length} epics to process`);
+
+      const result = await generateFrontendCode(epics, prd.title);
+
+      res.json({
+        success: true,
+        prdId,
+        prdTitle: prd.title,
+        ...result
+      });
+
+    } catch (error: any) {
+      console.error("Error generating frontend code:", error);
+      res.status(500).json({ 
+        error: "Failed to generate frontend code",
+        details: error.message 
+      });
     }
   });
 

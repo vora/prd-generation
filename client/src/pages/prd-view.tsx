@@ -84,6 +84,13 @@ export default function PRDView() {
           {activeTab === "epics" && (
             <EpicGenerator prdId={prd.id} prdTitle={prd.title} />
           )}
+          {activeTab === "code" && (
+            <CodeGenerator 
+              prdId={prd.id} 
+              prdTitle={prd.title}
+              hasEpics={prd.content && (prd.content as any).epics && (prd.content as any).epics.length > 0}
+            />
+          )}
         </div>
       </div>
     </div>
