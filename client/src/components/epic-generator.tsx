@@ -55,9 +55,12 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
     queryKey: [`/api/prds/${prdId}/epics`],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/prds/${prdId}/epics`, undefined);
-      return response.json();
+      const data = await response.json();
+      console.log("Epic data received:", data);
+      return data;
     },
-    enabled: true,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   // Generate epics mutation
@@ -71,7 +74,8 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
         title: "Epics generated successfully!",
         description: `Generated epics in ${data?.processingTime || 0}ms`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/epics', prdId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
+      queryClient.refetchQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
     },
     onError: (error: any) => {
       toast({
