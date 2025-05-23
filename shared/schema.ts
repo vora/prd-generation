@@ -106,7 +106,7 @@ export const epics = pgTable("epics", {
   description: text("description").notNull(),
   priority: text("priority").notNull().default("medium"), // high, medium, low
   estimatedEffort: text("estimated_effort"), // e.g., "2-3 weeks"
-  userStories: jsonb("user_stories").$type<UserStory[]>().notNull().default([]),
+  userStories: json("user_stories").$type<UserStory[]>().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
