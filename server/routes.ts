@@ -364,6 +364,20 @@ Epic Description: ${epic.content?.description || 'No description available'}`
         processingTime 
       });
 
+      // Also update the main PRD epic list to reflect changes
+      const prds = await storage.getAllPrds();
+      const prd = prds.find(p => p.id === epic.prdId);
+      if (prd && prd.content && prd.content.epics) {
+        const epicIndex = prd.content.epics.findIndex((e: any) => e.id === epicIdParam);
+        if (epicIndex !== -1) {
+          if (!prd.content.epics[epicIndex].userStories) {
+            prd.content.epics[epicIndex].userStories = [];
+          }
+          prd.content.epics[epicIndex].userStories.push(result.userStory);
+          await storage.updatePrd(prd.id, { content: prd.content });
+        }
+      }
+
       res.json({ 
         success: true, 
         userStory: result.userStory,
