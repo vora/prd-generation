@@ -48,7 +48,7 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
           {/* Purpose and Vision */}
           <section>
             <h2 className="text-2xl font-bold mb-4 text-foreground">Purpose and Vision</h2>
-            <p className="text-muted-foreground leading-relaxed">{prd.content.purposeAndVision}</p>
+            <p className="text-foreground/80 leading-relaxed">{prd.content.purposeAndVision}</p>
           </section>
 
           {/* Scope */}
@@ -82,13 +82,13 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                 <Card key={index} className="bg-muted/50">
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-lg mb-2 text-foreground">{persona.name}</h3>
-                    <p className="text-muted-foreground mb-4">{persona.description}</p>
+                    <p className="text-foreground/80 mb-4">{persona.description}</p>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <h4 className="font-medium mb-2 text-foreground">Characteristics:</h4>
                         <ul className="list-disc pl-6 space-y-1">
                           {persona.characteristics.map((char, charIndex) => (
-                            <li key={charIndex} className="text-muted-foreground text-sm">{char}</li>
+                            <li key={charIndex} className="text-foreground/75 text-sm">{char}</li>
                           ))}
                         </ul>
                       </div>
@@ -96,7 +96,7 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                         <h4 className="font-medium mb-2 text-foreground">Needs:</h4>
                         <ul className="list-disc pl-6 space-y-1">
                           {persona.needs.map((need, needIndex) => (
-                            <li key={needIndex} className="text-muted-foreground text-sm">{need}</li>
+                            <li key={needIndex} className="text-foreground/75 text-sm">{need}</li>
                           ))}
                         </ul>
                       </div>
@@ -123,7 +123,7 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                         {feature.priority}
                       </Badge>
                     </div>
-                    <p className="text-muted-foreground mb-3">{feature.description}</p>
+                    <p className="text-foreground/80 mb-3">{feature.description}</p>
                     <p className="text-sm text-primary italic">{feature.userStory}</p>
                   </CardContent>
                 </Card>
@@ -139,15 +139,15 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
                     <h4 className="font-medium mb-2 text-foreground">Style:</h4>
-                    <p className="text-muted-foreground">{prd.content.uiUxAspirations.style}</p>
+                    <p className="text-foreground/80">{prd.content.uiUxAspirations.style}</p>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2 text-foreground">Tone:</h4>
-                    <p className="text-muted-foreground">{prd.content.uiUxAspirations.tone}</p>
+                    <p className="text-foreground/80">{prd.content.uiUxAspirations.tone}</p>
                   </div>
                   <div>
                     <h4 className="font-medium mb-2 text-foreground">User Experience:</h4>
-                    <p className="text-muted-foreground">{prd.content.uiUxAspirations.userExperience}</p>
+                    <p className="text-foreground/80">{prd.content.uiUxAspirations.userExperience}</p>
                   </div>
                 </div>
               </CardContent>
@@ -164,8 +164,8 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant="outline">{req.type}</Badge>
                     </div>
-                    <p className="text-muted-foreground mb-2">{req.requirement}</p>
-                    <p className="text-sm text-muted-foreground/80 italic">Rationale: {req.rationale}</p>
+                    <p className="text-foreground/80 mb-2">{req.requirement}</p>
+                    <p className="text-sm text-foreground/70 italic">Rationale: {req.rationale}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -177,7 +177,7 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
             <h2 className="text-2xl font-bold mb-4 text-foreground">Assumptions</h2>
             <ul className="list-disc pl-6 space-y-2">
               {prd.content.assumptions.map((assumption, index) => (
-                <li key={index} className="text-muted-foreground">{assumption}</li>
+                <li key={index} className="text-foreground/75">{assumption}</li>
               ))}
             </ul>
           </section>
@@ -192,7 +192,7 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                     <div className="flex items-center gap-2 mb-3">
                       <Badge variant="secondary">{dep.type}</Badge>
                     </div>
-                    <p className="text-muted-foreground mb-2">{dep.dependency}</p>
+                    <p className="text-foreground/80 mb-2">{dep.dependency}</p>
                     <p className="text-sm text-orange-600">Impact: {dep.impact}</p>
                   </CardContent>
                 </Card>
@@ -215,8 +215,8 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                         {risk.impact} Impact
                       </Badge>
                     </div>
-                    <p className="text-muted-foreground mb-2"><strong>Risk:</strong> {risk.risk}</p>
-                    <p className="text-sm text-muted-foreground/80"><strong>Mitigation:</strong> {risk.mitigation}</p>
+                    <p className="text-foreground/80 mb-2"><strong>Risk:</strong> {risk.risk}</p>
+                    <p className="text-sm text-foreground/70"><strong>Mitigation:</strong> {risk.mitigation}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -230,8 +230,8 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
               {prd.content.successMetrics.map((metric, index) => (
                 <Card key={index} className="border-l-4 border-l-green-500">
                   <CardContent className="p-6">
-                    <p className="text-muted-foreground mb-1"><strong>Metric:</strong> {metric.metric}</p>
-                    <p className="text-muted-foreground mb-1"><strong>Target:</strong> {metric.target}</p>
+                    <p className="text-foreground/80 mb-1"><strong>Metric:</strong> {metric.metric}</p>
+                    <p className="text-foreground/80 mb-1"><strong>Target:</strong> {metric.target}</p>
                     <p className="text-sm text-green-600"><strong>Timeframe:</strong> {metric.timeframe}</p>
                   </CardContent>
                 </Card>
@@ -250,7 +250,7 @@ export default function PRDPreview({ prd }: PRDPreviewProps) {
                       <h3 className="font-semibold text-lg text-foreground">{item.name}</h3>
                       <Badge variant="outline">{item.timeframe}</Badge>
                     </div>
-                    <p className="text-muted-foreground mb-2">{item.description}</p>
+                    <p className="text-foreground/80 mb-2">{item.description}</p>
                     <p className="text-sm text-primary">Business Value: {item.businessValue}</p>
                   </CardContent>
                 </Card>
