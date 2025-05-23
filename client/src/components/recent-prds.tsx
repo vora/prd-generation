@@ -140,12 +140,14 @@ export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
         {recentPRDs.map((prd) => (
           <Card 
             key={prd.id} 
-            className="hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer bg-card/50 backdrop-blur-sm border-border hover:bg-card/80"
-            onClick={() => setLocation(`/prd/${prd.id}`)}
+            className="hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 bg-card/50 backdrop-blur-sm border-border hover:bg-card/80"
           >
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
+                <div 
+                  className="flex-1 cursor-pointer"
+                  onClick={() => setLocation(`/prd/${prd.id}`)}
+                >
                   <h4 className="font-bold text-foreground mb-2 line-clamp-2 text-lg">
                     {prd.title}
                   </h4>
@@ -157,95 +159,73 @@ export default function RecentPRDs({ onPRDSelect }: RecentPRDsProps) {
                   <Badge className={`${getStatusColor(prd.status)} border text-xs`}>
                     {getStatusText(prd.status)}
                   </Badge>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                      >
-                        <MoreHorizontal className="w-4 h-4 text-slate-600" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="end"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                      }}
-                    >
-                      <AlertDialog>
+                  <AlertDialog>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-slate-600" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
                         <AlertDialogTrigger asChild>
-                          <DropdownMenuItem 
-                            onSelect={(e) => e.preventDefault()} 
-                            className="text-destructive focus:text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                            }}
-                          >
+                          <DropdownMenuItem className="text-destructive focus:text-destructive">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete PRD
                           </DropdownMenuItem>
                         </AlertDialogTrigger>
-                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete PRD</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{prd.title}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeletePrd(prd.id, prd.title);
-                              }}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete PRD</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{prd.title}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDeletePrd(prd.id, prd.title)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
               
-              <p className="text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
-                {typeof prd.content === 'object' && prd.content && 'overview' in prd.content
-                  ? (prd.content.overview as string).substring(0, 120) + '...'
-                  : 'No description available'
-                }
-              </p>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  <span>
-                    {typeof prd.content === 'object' && prd.content
-                      ? Object.keys(prd.content).length
-                      : 0
-                    } sections
-                  </span>
+              <div onClick={() => setLocation(`/prd/${prd.id}`)} className="cursor-pointer">
+                <p className="text-muted-foreground mb-4 line-clamp-3 leading-relaxed">
+                  {typeof prd.content === 'object' && prd.content && 'purposeAndVision' in prd.content
+                    ? (prd.content.purposeAndVision as string).substring(0, 120) + '...'
+                    : 'No description available'
+                  }
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                    <FileText className="w-4 h-4" />
+                    <span>
+                      {typeof prd.content === 'object' && prd.content
+                        ? Object.keys(prd.content).length
+                        : 0
+                      } sections
+                    </span>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="link" 
+                    className="text-primary hover:text-primary/80 font-semibold p-0"
+                  >
+                    Open PRD
+                  </Button>
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="link" 
-                  className="text-primary hover:text-primary/80 font-semibold p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLocation(`/prd/${prd.id}`);
-                  }}
-                >
-                  Open PRD
-                </Button>
               </div>
             </CardContent>
           </Card>
