@@ -61,9 +61,29 @@ export default function PRDView() {
         </div>
       </div>
       
-      {/* PRD Content */}
+      {/* Content with tabs */}
       <div className="container mx-auto px-4 py-6">
-        <PRDPreview prd={prd} />
+        <div className="space-y-8">
+          <div className="flex items-center space-x-4 mb-6">
+            <Button
+              variant={activeTab === "prd" ? "default" : "outline"}
+              onClick={() => setActiveTab("prd")}
+            >
+              PRD Overview
+            </Button>
+            <Button
+              variant={activeTab === "epics" ? "default" : "outline"}
+              onClick={() => setActiveTab("epics")}
+            >
+              Epics & User Stories
+            </Button>
+          </div>
+
+          {activeTab === "prd" && <PRDPreview prd={prd} />}
+          {activeTab === "epics" && (
+            <EpicGenerator prdId={prd.id} prdTitle={prd.title} />
+          )}
+        </div>
       </div>
     </div>
   );
