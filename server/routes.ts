@@ -367,17 +367,25 @@ Epic Description: ${epic.content?.description || 'No description available'}`
       // Also update the main PRD epic list to reflect changes
       const prds = await storage.getAllPrds();
       const prd = prds.find(p => p.id === epic.prdId);
+      console.log(`Found PRD ${prd?.id} for epic ${epicIdParam}`);
+      
       if (prd && prd.content && (prd.content as any).epics) {
         const content = prd.content as any;
         const epicIndex = content.epics.findIndex((e: any) => e.id === epicIdParam);
+        console.log(`Epic index: ${epicIndex}, Total epics: ${content.epics.length}`);
+        
         if (epicIndex !== -1) {
           if (!content.epics[epicIndex].userStories) {
             content.epics[epicIndex].userStories = [];
           }
           content.epics[epicIndex].userStories.push(result.userStory);
           await storage.updatePrd(prd.id, { content });
-          console.log(`Updated PRD ${prd.id} with new user story for epic ${epicIdParam}`);
+          console.log(`Successfully updated PRD ${prd.id} - Epic ${epicIdParam} now has ${content.epics[epicIndex].userStories.length} user stories`);
+        } else {
+          console.log(`Epic ${epicIdParam} not found in PRD content`);
         }
+      } else {
+        console.log(`PRD content structure issue - PRD: ${!!prd}, Content: ${!!prd?.content}, Epics: ${!!(prd?.content as any)?.epics}`);
       }
 
       res.json({ 

@@ -93,8 +93,12 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
         title: "User story added successfully!",
         description: "New user story has been generated and added to the epic",
       });
-      // Force complete page refresh as a last resort
-      window.location.reload();
+      // Clear cache and refetch data
+      queryClient.removeQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
+      // Small delay before refetch to ensure backend update is complete
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: [`/api/prds/${prdId}/epics`] });
+      }, 500);
     },
     onError: (error: any) => {
       toast({
