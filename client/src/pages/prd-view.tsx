@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatTime, downloadBlob, generatePDF } from "@/lib/utils";
 import PRDPreview from "@/components/prd-preview-new";
 import EpicGenerator from "@/components/epic-generator";
-import CodeGenerator from "@/components/code-generator";
+import SimpleCodeGenerator from "@/components/simple-code-generator";
 import type { Prd } from "@shared/schema";
 
 export default function PRDView() {
@@ -91,7 +91,7 @@ export default function PRDView() {
             <EpicGenerator prdId={prd.id} prdTitle={prd.title} />
           )}
           {activeTab === "code" && (
-            <CodeGenerator 
+            <SimpleCodeGenerator 
               prdId={prd.id} 
               prdTitle={prd.title}
               hasEpics={prd.content && (prd.content as any).epics && (prd.content as any).epics.length > 0}
