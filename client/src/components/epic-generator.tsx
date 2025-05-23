@@ -48,7 +48,7 @@ export default function EpicGenerator({ prdId, prdTitle }: EpicGeneratorProps) {
   const generateEpicsMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', `/api/prds/${prdId}/generate-epics`, {});
-      return response;
+      return response.json();
     },
     onSuccess: (data: any) => {
       toast({
