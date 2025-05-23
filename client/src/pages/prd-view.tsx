@@ -112,10 +112,14 @@ export default function PRDView() {
                         });
                         
                         const data = await response.json();
+                        console.log('Response data:', data);
+                        console.log('Response status:', response.status);
+                        console.log('Response ok:', response.ok);
+                        
                         if (response.ok && data.success) {
-                          alert(`🎉 Success! Generated ${data.components?.length || 0} components for your ${data.prdTitle} application!\n\nComponents created:\n${data.components?.map(c => `- ${c.filename}`).join('\n') || 'Multiple components'}`);
+                          alert(`🎉 SUCCESS! Generated ${data.components?.length || 0} components for your ${data.prdTitle} application!\n\nComponents created:\n${data.components?.map(c => `- ${c.filename}`).join('\n') || 'Multiple components'}`);
                         } else {
-                          alert(`Error: ${data.error || 'Unknown error occurred'}`);
+                          alert(`Debug Info:\nStatus: ${response.status}\nOK: ${response.ok}\nData: ${JSON.stringify(data, null, 2)}`);
                         }
                       } catch (error) {
                         alert('Failed to generate code. Please try again.');
